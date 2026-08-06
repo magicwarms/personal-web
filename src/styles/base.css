@@ -1,0 +1,276 @@
+/* ---------------------------------------------------------------------------
+   Design tokens
+   Palette and type scale are ported 1:1 from the source design so the built
+   site is pixel-faithful; everything downstream references these variables.
+--------------------------------------------------------------------------- */
+:root {
+  --bg: #06100f;
+  --surface: #081615;
+  --surface-raised: #0c1f1e;
+  --surface-hover: #0a1a19;
+
+  --accent: #3ddbc4;
+  --accent-bright: #8ff0e0;
+  --accent-08: rgba(61, 219, 196, 0.08);
+  --accent-12: rgba(61, 219, 196, 0.12);
+  --accent-14: rgba(61, 219, 196, 0.14);
+  --accent-16: rgba(61, 219, 196, 0.16);
+  --accent-20: rgba(61, 219, 196, 0.2);
+  --accent-28: rgba(61, 219, 196, 0.28);
+  --accent-40: rgba(61, 219, 196, 0.4);
+  --accent-50: rgba(61, 219, 196, 0.5);
+  --accent-60: rgba(61, 219, 196, 0.6);
+
+  --rose: #d88aa6;
+  --amber: #e8c578;
+
+  --text: #d7e5e2;
+  --text-muted: #9db3ae;
+  --text-dim: #7d938f;
+  --text-dimmer: #6b807c;
+
+  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --shell-max: 1180px;
+  --shell-pad: clamp(20px, 5vw, 56px);
+  --section-pad: clamp(80px, 12vh, 140px);
+  --radius-sm: 6px;
+  --radius-lg: 12px;
+
+  --ease-out: cubic-bezier(0.22, 0.7, 0.2, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Sticky header height + breathing room, so anchors never land under it. */
+  scroll-padding-top: 96px;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.85;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+p,
+figure,
+blockquote {
+  margin: 0;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 0.25s ease;
+}
+
+a:hover {
+  color: var(--accent-bright);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+input,
+textarea,
+button {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* --------------------------------------------------------------------------
+   Shared primitives
+-------------------------------------------------------------------------- */
+.shell {
+  width: 100%;
+  max-width: var(--shell-max);
+  margin-inline: auto;
+  padding-inline: var(--shell-pad);
+}
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--text-dimmer);
+}
+
+.btn {
+  display: inline-block;
+  padding: 13px 22px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease;
+}
+
+.btn--solid {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.btn--solid:hover {
+  background: var(--accent-bright);
+  color: var(--bg);
+}
+
+.btn--ghost {
+  border-color: var(--accent-40);
+  color: var(--text);
+  font-weight: 400;
+}
+
+.btn--ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-12);
+}
+
+.pill {
+  border: 1px solid var(--accent-20);
+  border-radius: 9999px;
+  padding: 6px 13px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--text-muted);
+}
+
+.bullets li {
+  display: flex;
+  gap: 12px;
+}
+
+.bullets li::before {
+  content: '▸';
+  color: var(--accent);
+  flex: none;
+}
+
+.bullets--soft li::before {
+  color: var(--accent-60);
+}
+
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -100px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 12px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus-visible {
+  top: 12px;
+  color: var(--bg);
+}
+
+/* Visually hidden but available to assistive tech. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Ambient CSS animation (Motion handles everything state-driven)
+-------------------------------------------------------------------------- */
+@keyframes caret-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.caret {
+  display: inline-block;
+  width: 8px;
+  height: 13px;
+  margin-left: 6px;
+  vertical-align: -1px;
+  background: var(--accent);
+  animation: caret-blink 1.1s step-end infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .caret {
+    opacity: 1;
+  }
+}
