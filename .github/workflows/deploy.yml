@@ -46,6 +46,11 @@ jobs:
       # reads import.meta.env, so no credential is ever baked into the bundle.
       - run: npm run build
 
+      # The runner's default buildx driver is "docker", which cannot export a
+      # cache ("Cache export is not supported for the docker driver"). This
+      # provisions the docker-container driver, which can.
+      - uses: docker/setup-buildx-action@v3
+
       # Build the real multi-stage image so a broken Dockerfile fails here rather
       # than on the VPS. No push, no registry, no secrets.
       - name: Build production image
