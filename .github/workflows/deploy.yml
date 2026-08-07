@@ -73,12 +73,25 @@ jobs:
           echo "uptime=${u:-0}" >> "$GITHUB_OUTPUT"
           echo "pre-deploy uptime: ${u:-unreachable}"
 
+      # Deliberately the REST API and not the panel's /api/deploy/<refreshToken>
+      # webhook: that route refuses with 400 "Automatic deployments are disabled
+      # for this application" whenever autoDeploy is off, and turning autoDeploy
+      # on would let Dokploy's GitHub App deploy the same push a second time.
+      # application.deploy has no such check, so CI stays the only trigger.
       - name: Trigger Dokploy deploy
+        env:
+          DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+          APP_ID: ${{ vars.DOKPLOY_APP_ID }}
+          SHA: ${{ github.sha }}
         run: |
+          payload=$(jq -nc --arg id "$APP_ID" --arg t "CI $SHA" \
+            '{applicationId:$id, title:$t}')
           code=$(curl -sS -o /tmp/resp.txt -w '%{http_code}' \
             --resolve "$DOKPLOY_HOST:443:$DOKPLOY_ORIGIN_IP" \
-            -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}" \
-            -H 'Content-Type: application/json' -d '{}')
+            -X POST "https://$DOKPLOY_HOST/api/application.deploy" \
+            -H "x-api-key: $DOKPLOY_API_KEY" \
+            -H 'Content-Type: application/json' \
+            -d "$payload")
           echo "HTTP $code"; cat /tmp/resp.txt 2>/dev/null; echo
           test "$code" -ge 200 -a "$code" -lt 300
 
