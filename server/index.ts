@@ -15,11 +15,14 @@ const mailer = createMailer(config)
 
 const app = express()
 
-// Dokploy's Traefik terminates TLS in production and is the only proxy hop, so
-// one is the correct depth. Without this the limiter sees every request as
-// coming from 127.0.0.1 and throttles all visitors as a single client; set it
-// too high and a spoofed X-Forwarded-For would let a client dodge the limit.
-app.set('trust proxy', 1)
+// Two proxy hops in production: Cloudflare's edge fronts the domain and passes
+// to Dokploy's Traefik, which passes to this process. Express counts hops from
+// the right of X-Forwarded-For, so a depth of one resolves every request to
+// Cloudflare's edge address and makes the limiter below throttle a whole PoP as
+// one client. This must track the real hop count in both directions — too high
+// and a spoofed X-Forwarded-For lets a client pick its own key and dodge the
+// limit, so drop back to 1 if the record is ever grey-clouded.
+app.set('trust proxy', 2)
 app.disable('x-powered-by')
 
 app.use(compression())

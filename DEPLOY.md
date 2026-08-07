@@ -86,10 +86,12 @@ Then submit the contact form once and confirm the mail arrives at `CONTACT_TO` w
 Ports 465 and 587 are normally open; port 25 is very often blocked. The site keeps serving
 — this is a warning, not a crash — but the contact form will return a 502.
 
-**Every visitor shares one rate limit.** `server/index.ts` sets `trust proxy` to `1`,
-correct for Traefik as the only proxy hop. If you later put Cloudflare's proxy in front,
-that becomes two hops and the value must be raised, otherwise `express-rate-limit` keys
-every visitor on Traefik's IP.
+**Every visitor shares one rate limit.** `server/index.ts` sets `trust proxy` to `2`:
+Cloudflare's proxy fronts the domain and Dokploy's Traefik sits behind it, so a request
+crosses two hops before reaching Express. The value must track that count. If the DNS
+record is ever grey-clouded (Cloudflare proxy off, DNS only), Traefik becomes the sole hop
+and this must go back to `1` — otherwise Express trusts one entry too many and a client can
+spoof `X-Forwarded-For` to pick its own rate-limit key.
 
 **Blank page or missing fonts after deploy.** Check the browser console for CSP
 violations. The policy in `server/index.ts` allowlists `fonts.googleapis.com` and
