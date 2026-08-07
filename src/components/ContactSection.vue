@@ -4,25 +4,71 @@ import SectionHeading from './ui/SectionHeading.vue'
 import RevealItem from './ui/RevealItem.vue'
 import { contactIntro, contactLinks, profile } from '@/data/portfolio'
 
-const form = reactive({ name: '', email: '', message: '' })
-const hasSent = ref(false)
+type SubmitState = 'idle' | 'submitting' | 'success' | 'error'
 
-const status = computed(() =>
-  hasSent.value
-    ? `Opening your mail client — if nothing happens, write to ${profile.email} directly.`
-    : `Sends via your mail client. Direct: ${profile.email}`,
-)
+/** `company` is the honeypot — hidden from people, filled in by bots. */
+const form = reactive({ name: '', email: '', message: '', company: '' })
+const state = ref<SubmitState>('idle')
+const errorDetail = ref('')
+
+const status = computed(() => {
+  switch (state.value) {
+    case 'submitting':
+      return 'Sending your message…'
+    case 'success':
+      return 'Thanks — your message is on its way. I usually reply within a couple of days.'
+    case 'error':
+      // Always leave a way through, whatever failed.
+      return `${errorDetail.value || 'Something went wrong sending your message.'} You can write to ${profile.email} directly instead.`
+    default:
+      return `Goes straight to my inbox. Direct: ${profile.email}`
+  }
+})
+
+interface ContactResponse {
+  ok?: boolean
+  error?: string
+  errors?: Partial<Record<'name' | 'email' | 'message', string>>
+}
 
 /**
- * No backend to post to, so the form composes a message and hands off to the
- * visitor's mail client — the same contract the design describes.
+ * Posts to the site's own API, which holds the SMTP credentials server-side.
+ * The path stays relative so it resolves through the Vite proxy in development
+ * and same-origin in production, with no host baked into the bundle.
  */
-function onSubmit() {
-  const subject = encodeURIComponent(`Portfolio enquiry from ${form.name}`)
-  const body = encodeURIComponent(`${form.message}\n\n— ${form.name} (${form.email})`)
+async function onSubmit() {
+  if (state.value === 'submitting') return
 
-  window.location.href = `mailto:${profile.email}?subject=${subject}&body=${body}`
-  hasSent.value = true
+  state.value = 'submitting'
+  errorDetail.value = ''
+
+  try {
+    const response = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    })
+
+    const payload = (await response.json().catch(() => ({}))) as ContactResponse
+
+    if (!response.ok || !payload.ok) {
+      // Prefer the server's own wording — a field error or the rate-limit
+      // notice is far more useful than a generic failure.
+      const firstFieldError = payload.errors ? Object.values(payload.errors)[0] : undefined
+      errorDetail.value = firstFieldError ?? payload.error ?? ''
+      state.value = 'error'
+      return
+    }
+
+    form.name = ''
+    form.email = ''
+    form.message = ''
+    state.value = 'success'
+  } catch {
+    // Offline, DNS failure, server down — nothing actionable to report beyond
+    // the fallback address the status message already carries.
+    state.value = 'error'
+  }
 }
 </script>
 
@@ -81,9 +127,34 @@ function onSubmit() {
             ></textarea>
           </label>
 
-          <button type="submit" class="contact__submit">Send message</button>
+          <div class="contact__honeypot" aria-hidden="true">
+            <label>
+              Company
+              <input
+                v-model.trim="form.company"
+                name="company"
+                type="text"
+                tabindex="-1"
+                autocomplete="off"
+              />
+            </label>
+          </div>
 
-          <p class="contact__status" role="status" aria-live="polite">{{ status }}</p>
+          <button type="submit" class="contact__submit" :disabled="state === 'submitting'">
+            {{ state === 'submitting' ? 'Sending…' : 'Send message' }}
+          </button>
+
+          <p
+            class="contact__status"
+            :class="{
+              'contact__status--success': state === 'success',
+              'contact__status--error': state === 'error',
+            }"
+            role="status"
+            aria-live="polite"
+          >
+            {{ status }}
+          </p>
         </form>
       </RevealItem>
     </div>
@@ -202,13 +273,39 @@ function onSubmit() {
   transition: background-color 0.25s ease;
 }
 
-.contact__submit:hover {
+.contact__submit:hover:not(:disabled) {
   background: var(--accent-12);
+}
+
+.contact__submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/*
+ * Positioned off-screen rather than `display: none` — bots routinely skip
+ * fields that are genuinely hidden, which would defeat the trap.
+ */
+.contact__honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }
 
 .contact__status {
   font-size: 11px;
   line-height: 1.7;
   color: var(--text-dimmer);
+  transition: color 0.25s ease;
+}
+
+.contact__status--success {
+  color: var(--accent);
+}
+
+.contact__status--error {
+  color: var(--danger);
 }
 </style>

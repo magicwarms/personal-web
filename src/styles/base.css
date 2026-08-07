@@ -24,6 +24,10 @@
   --rose: #d88aa6;
   --amber: #e8c578;
 
+  /* Semantic alias — form errors reuse the existing rose rather than
+     introducing a red that sits outside the ported palette. */
+  --danger: var(--rose);
+
   --text: #d7e5e2;
   --text-muted: #9db3ae;
   --text-dim: #7d938f;
