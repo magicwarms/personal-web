@@ -1,0 +1,104 @@
+name: Deploy
+
+# Dokploy builds the image from the repo Dockerfile on the VPS. This workflow
+# gates the deploy on a clean typecheck + build + image build, pings Dokploy's
+# redeploy webhook, then waits until the new container is actually serving.
+# The Dokploy app has autoDeploy=false, so this is the only deploy trigger.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never let two deploys of the same app overlap. Don't cancel a run mid-deploy:
+# the webhook has already fired by then and cancelling would only lose the wait.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DOKPLOY_HOST: controlpanel.hostara.id
+      # controlpanel.hostara.id is behind Cloudflare, whose managed challenge
+      # returns 403 to Actions runner (datacenter) IPs. We hit the VPS origin
+      # directly with curl --resolve, keeping the real Host/SNI so Traefik routes
+      # the request and the Let's Encrypt cert still validates. Update this if
+      # the VPS IP changes. (Same fix as hostara-frontend-web.)
+      DOKPLOY_ORIGIN_IP: 43.163.91.112
+      # The site must NOT use --resolve: the origin serves a self-signed cert for
+      # this host (LE's HTTP-01 challenge can't reach it through Cloudflare), so
+      # health checks go through Cloudflare, which does not challenge this host.
+      SITE_URL: https://magicwarms.my.id
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22          # package.json engines: >=22.12.0
+          cache: npm
+
+      - run: npm ci
+
+      # Fails fast with readable output: this script chains vue-tsc --noEmit,
+      # vite build, and the server tsc build. Needs no secrets - nothing in src/
+      # reads import.meta.env, so no credential is ever baked into the bundle.
+      - run: npm run build
+
+      # Build the real multi-stage image so a broken Dockerfile fails here rather
+      # than on the VPS. No push, no registry, no secrets.
+      - name: Build production image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Process uptime identifies the running container. Capture it before
+      # deploying so the poll below can distinguish the new container from the
+      # old one, which keeps serving traffic throughout the VPS build.
+      - name: Record pre-deploy uptime
+        id: before
+        run: |
+          body=$(curl -sS -m 15 -H 'Cache-Control: no-cache' \
+            "$SITE_URL/api/health?ci=$GITHUB_RUN_ID" || true)
+          u=$(printf '%s' "$body" | jq -r '.uptime // empty' 2>/dev/null || true)
+          echo "uptime=${u:-0}" >> "$GITHUB_OUTPUT"
+          echo "pre-deploy uptime: ${u:-unreachable}"
+
+      - name: Trigger Dokploy deploy
+        run: |
+          code=$(curl -sS -o /tmp/resp.txt -w '%{http_code}' \
+            --resolve "$DOKPLOY_HOST:443:$DOKPLOY_ORIGIN_IP" \
+            -X POST "${{ secrets.DOKPLOY_WEBHOOK_URL }}" \
+            -H 'Content-Type: application/json' -d '{}')
+          echo "HTTP $code"; cat /tmp/resp.txt 2>/dev/null; echo
+          test "$code" -ge 200 -a "$code" -lt 300
+
+      # A 2xx above only means "queued". Poll until uptime resets below the
+      # pre-deploy value, which only happens once the new container serves.
+      # If the site was unreachable beforehand, settle for ok=true.
+      - name: Wait for the new container
+        run: |
+          before='${{ steps.before.outputs.uptime }}'
+          deadline=$(( $(date +%s) + 900 ))
+          while [ "$(date +%s)" -lt "$deadline" ]; do
+            body=$(curl -sS -m 15 -H 'Cache-Control: no-cache' \
+              "$SITE_URL/api/health?ci=$GITHUB_RUN_ID&t=$(date +%s)" || true)
+            ok=$(printf '%s' "$body" | jq -r '.ok // empty' 2>/dev/null || true)
+            now=$(printf '%s' "$body" | jq -r '.uptime // empty' 2>/dev/null || true)
+            echo "ok=$ok uptime=$now (pre-deploy=$before)"
+            if [ "$ok" = "true" ]; then
+              if [ "$before" = "0" ]; then
+                echo "Site is healthy."; exit 0
+              fi
+              if [ -n "$now" ] && awk "BEGIN{exit !($now < $before)}"; then
+                echo "New container is live (uptime reset)."; exit 0
+              fi
+            fi
+            sleep 15
+          done
+          echo "::error::Timed out after 15m waiting for the new container."
+          exit 1
