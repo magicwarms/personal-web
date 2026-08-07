@@ -170,7 +170,7 @@ export const roles: Role[] = [
   },
   {
     id: "brainpooltech",
-    title: "Back End Engineer",
+    title: "Backend Engineer",
     company: "BrainPoolTech Pte. Ltd.",
     period: "2020—2022 · Remote, Singapore",
     highlights: [
