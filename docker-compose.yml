@@ -1,0 +1,25 @@
+# Local production-parity testing only. Dokploy builds the Dockerfile directly
+# and does not use this file.
+#
+# `env_file` injects the real credentials at RUN time. They are never copied into
+# the image -- .dockerignore excludes every .env* from the build context.
+#
+#   docker compose up --build
+#   curl -s localhost:3000/api/health
+
+services:
+  web:
+    build: .
+    env_file: .env
+    ports:
+      # Bound to loopback so a local test never exposes the SMTP relay to the LAN.
+      - "127.0.0.1:3000:3000"
+    restart: unless-stopped
+    # No `init: true` here — the Dockerfile already sets tini as ENTRYPOINT.
+    # Enabling both nests docker-init above tini, which then warns that it is
+    # not PID 1 and cannot reap subprocesses.
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL

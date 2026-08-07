@@ -1,9 +1,11 @@
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import compression from 'compression'
 import express from 'express'
 import type { ErrorRequestHandler } from 'express'
 import rateLimit from 'express-rate-limit'
+import helmet from 'helmet'
 import { loadConfig } from './env.js'
 import { createMailer } from './mailer.js'
 import { createContactHandler } from './routes/contact.js'
@@ -13,10 +15,46 @@ const mailer = createMailer(config)
 
 const app = express()
 
-// nginx terminates TLS in production. Without this the limiter sees every
-// request as coming from 127.0.0.1 and throttles all visitors as one client.
+// Dokploy's Traefik terminates TLS in production and is the only proxy hop, so
+// one is the correct depth. Without this the limiter sees every request as
+// coming from 127.0.0.1 and throttles all visitors as a single client; set it
+// too high and a spoofed X-Forwarded-For would let a client dodge the limit.
 app.set('trust proxy', 1)
 app.disable('x-powered-by')
+
+app.use(compression())
+
+// This process serves the HTML itself, so it owns the response headers rather
+// than delegating them to a separate web server.
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        // The production build emits no inline script — every bundle is a
+        // separate hashed file — so 'self' needs no nonce or hash alongside it.
+        scriptSrc: ["'self'"],
+        // fonts.googleapis.com serves the stylesheet linked from index.html.
+        // 'unsafe-inline' is here for the inline style attributes motion-v
+        // writes while animating; no stylesheet depends on it.
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        imgSrc: ["'self'", 'data:'],
+        // The contact form only ever posts back to this same origin.
+        connectSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        upgradeInsecureRequests: [],
+      },
+    },
+    frameguard: { action: 'deny' },
+    // `preload` is deliberately omitted — submitting to the preload list is a
+    // commitment for the whole domain that is slow and painful to undo.
+    hsts: { maxAge: 31536000, includeSubDomains: true },
+  }),
+)
 
 const contactLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -32,6 +70,14 @@ app.post(
   express.json({ limit: '10kb' }),
   createContactHandler(mailer),
 )
+
+// Probed by the container HEALTHCHECK and by Dokploy. Deliberately cheap: no
+// SMTP round trip and no disk access, so a briefly unreachable mail provider
+// never causes the whole site to be restarted. Must stay above the /api
+// catch-all below, which would otherwise answer it with a 404.
+app.get('/api/health', (_req, res) => {
+  res.json({ ok: true, uptime: process.uptime() })
+})
 
 // Malformed JSON throws inside express.json. Without this it would fall through
 // to the default handler and return an HTML stack trace.

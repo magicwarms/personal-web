@@ -1,0 +1,27 @@
+# --- Secrets: must never enter the build context ---
+# Bare glob, deliberately with no negated exception. The image has no use for
+# .env.example, and a single unambiguous rule removes any chance of an exception
+# pattern accidentally re-admitting a real secrets file.
+.env*
+
+# --- Build artifacts (regenerated inside the image) ---
+node_modules
+dist
+dist-server
+.vite
+*.tsbuildinfo
+*.local
+
+# --- VCS, tooling, docs ---
+.git
+.gitignore
+.github
+.claude
+README.md
+DEPLOY.md
+.DS_Store
+
+# --- Docker's own files ---
+Dockerfile
+.dockerignore
+docker-compose.yml
