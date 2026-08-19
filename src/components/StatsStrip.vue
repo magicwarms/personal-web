@@ -32,31 +32,35 @@ const container = staggerContainer(0.04)
   grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
   gap: 1px;
   margin: 0;
-  background: var(--accent-14);
-  border: 1px solid var(--accent-14);
+  background: var(--color-rule);
+  border-inline: 1px solid var(--color-rule);
+  border-top: 3px double var(--color-rule);
+  border-bottom: 1px solid var(--color-rule);
   border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
 .stats__cell {
-  background: var(--surface);
+  background: var(--color-paper-2);
   padding: 28px 24px;
 }
 
 .stats__value {
   font-family: var(--font-display);
-  font-size: 40px;
+  font-size: 2.25rem;
   font-weight: 700;
-  color: var(--accent);
-  letter-spacing: -1.5px;
+  color: var(--color-ink);
+  letter-spacing: -0.03em;
   line-height: 1.2;
+  font-variant-numeric: tabular-nums;
 }
 
 .stats__label {
   margin: 8px 0 0;
-  font-size: 11px;
-  letter-spacing: 1.6px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-dim);
+  color: var(--color-ink-3);
 }
 </style>

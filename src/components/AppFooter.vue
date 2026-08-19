@@ -17,8 +17,7 @@ import { profile } from '@/data/portfolio'
 <style scoped>
 .footer {
   position: relative;
-  z-index: 1;
-  border-top: 1px solid var(--accent-12);
+  border-top: 1px solid var(--color-rule);
 }
 
 .footer__inner {
@@ -28,9 +27,10 @@ import { profile } from '@/data/portfolio'
   gap: 16px;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
-  letter-spacing: 1.2px;
-  color: var(--text-dimmer);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  color: var(--color-ink-4);
 }
 
 .footer__status {
@@ -43,7 +43,7 @@ import { profile } from '@/data/portfolio'
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--color-accent);
   animation: caret-blink 2.4s ease-in-out infinite;
 }
 </style>

@@ -9,17 +9,23 @@ import type { Options } from 'motion-v'
 export type Variants = NonNullable<Options['variants']>
 export type Transition = NonNullable<Options['transition']>
 
-/** The single easing curve used across the site (matches the source design). */
-export const easeOut: [number, number, number, number] = [0.22, 0.7, 0.2, 1]
+/** The three named easings, matching `--ease-out` / `--ease-in-out` in base.css. */
+export const easeOut: [number, number, number, number] = [0.16, 1, 0.3, 1]
+const easeInOut: [number, number, number, number] = [0.65, 0, 0.35, 1]
 
 export const enterTransition: Transition = {
-  duration: 0.8,
+  duration: 0.6,
   ease: easeOut,
 }
 
+/**
+ * Reveals are deliberately quiet: an opacity-only settle, no spatial rise.
+ * The hero's staggered entrance is the page's one orchestrated moment —
+ * everything below it should just *be there*, not perform on scroll.
+ */
 export const revealTransition: Transition = {
-  duration: 0.7,
-  ease: easeOut,
+  duration: 0.35,
+  ease: easeInOut,
 }
 
 /**
@@ -37,8 +43,8 @@ export const revealViewport = {
  * different element than `RevealItem`'s div (article, li, dl).
  */
 export const revealProps = {
-  initial: { opacity: 0, y: 22 },
-  whileInView: { opacity: 1, y: 0 },
+  initial: { opacity: 0 },
+  whileInView: { opacity: 1 },
   inViewOptions: revealViewport,
   transition: revealTransition,
 }
@@ -57,15 +63,15 @@ export function staggerContainer(gap = 0.06, startDelay = 0): Variants {
   }
 }
 
-/** Child variant for staggered groups. */
+/** Child variant for staggered groups — opacity only, see `revealTransition`. */
 export const staggerItem: Variants = {
-  hidden: { opacity: 0, y: 18 },
-  visible: { opacity: 1, y: 0, transition: revealTransition },
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: revealTransition },
 }
 
-/** Hero copy: same rise, slightly slower, used with `staggerContainer`. */
+/** Hero copy: the one orchestrated entrance — a slightly fuller rise + fade. */
 export const heroItem: Variants = {
-  hidden: { opacity: 0, y: 18 },
+  hidden: { opacity: 0, y: 14 },
   visible: { opacity: 1, y: 0, transition: enterTransition },
 }
 

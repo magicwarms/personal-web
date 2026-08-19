@@ -37,20 +37,21 @@ import { stackGroups } from '@/data/portfolio'
 }
 
 .stack__card {
-  border: 1px solid var(--accent-14);
+  border: 1px solid var(--color-rule);
   border-radius: var(--radius-lg);
   padding: 26px;
-  background: rgba(8, 22, 21, 0.6);
-  transition: border-color 0.3s ease;
+  background: var(--color-paper-2);
+  transition: border-color var(--dur-short) var(--ease-out);
 }
 
 .stack__card:hover {
-  border-color: var(--accent-40);
+  border-color: var(--color-accent);
 }
 
 .stack__label {
   font-weight: 400;
   line-height: 1.6;
+  color: var(--color-ink-2);
 }
 
 .stack__items {

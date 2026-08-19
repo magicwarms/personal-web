@@ -50,7 +50,7 @@ import { certifications, education } from '@/data/portfolio'
 .credentials__label {
   font-weight: 400;
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--accent-14);
+  border-bottom: 1px solid var(--color-rule);
 }
 
 .credentials__list {
@@ -71,24 +71,25 @@ import { certifications, education } from '@/data/portfolio'
 }
 
 .credentials__index {
-  font-size: 12px;
-  color: var(--accent-50);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-ink-3);
   line-height: 1.6;
 }
 
 .credentials__title {
   margin-top: 8px;
   font-family: var(--font-display);
-  font-size: 17px;
+  font-size: 1.0625rem;
   font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.2px;
+  color: var(--color-ink);
+  letter-spacing: -0.01em;
   line-height: 1.4;
 }
 
 .credentials__title--small {
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 400;
   letter-spacing: 0;
   line-height: 1.6;
@@ -96,16 +97,17 @@ import { certifications, education } from '@/data/portfolio'
 
 .credentials__meta {
   margin-top: 8px;
-  font-size: 12px;
-  color: var(--rose);
-  letter-spacing: 1.2px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-warn);
+  letter-spacing: 0.02em;
   line-height: 1.6;
 }
 
 .credentials__detail {
   margin-top: 8px;
-  font-size: 13px;
-  line-height: 1.8;
-  color: var(--text-muted);
+  font-size: 0.875rem;
+  line-height: 1.75;
+  color: var(--color-ink-2);
 }
 </style>

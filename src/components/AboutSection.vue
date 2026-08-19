@@ -61,37 +61,38 @@ import { profile } from '@/data/portfolio'
   border-radius: 50%;
   object-fit: cover;
   flex: none;
-  border: 1px solid rgba(61, 219, 196, 0.3);
-  filter: saturate(0.85);
+  border: 1px solid var(--color-rule);
 }
 
 .about__name {
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
-  letter-spacing: -0.4px;
-  color: var(--text);
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
   line-height: 1.3;
 }
 
 .about__role {
   margin-top: 6px;
-  font-size: 12px;
-  color: var(--accent);
-  letter-spacing: 1.2px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-accent);
+  letter-spacing: 0.02em;
   line-height: 1.5;
 }
 
 .about__location {
   margin-top: 6px;
-  font-size: 12px;
-  color: var(--text-dimmer);
+  font-size: 0.75rem;
+  color: var(--color-ink-4);
   line-height: 1.5;
 }
 
 .about__copy {
-  color: var(--text-muted);
-  line-height: 1.9;
+  color: var(--color-ink-2);
+  font-size: 1rem;
+  line-height: 1.75;
   text-wrap: pretty;
 }
 
@@ -101,8 +102,8 @@ import { profile } from '@/data/portfolio'
 
 .about__languages {
   margin-top: 18px;
-  font-size: 12px;
-  line-height: 1.9;
-  color: var(--text-dimmer);
+  font-size: 0.8125rem;
+  line-height: 1.8;
+  color: var(--color-ink-4);
 }
 </style>

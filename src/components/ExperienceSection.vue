@@ -97,7 +97,7 @@ const toggleLabel = computed(() =>
 
 .timeline {
   margin-top: 48px;
-  border-left: 1px solid var(--accent-16);
+  border-left: 1px solid var(--color-rule);
   padding-left: clamp(20px, 3vw, 36px);
   display: flex;
   flex-direction: column;
@@ -126,15 +126,15 @@ const toggleLabel = computed(() =>
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--accent-40);
+  background: var(--color-ink-4);
 }
 
 .timeline__marker--lead {
-  background: var(--accent);
+  background: var(--color-accent);
 }
 
 .timeline__marker--faint {
-  background: rgba(61, 219, 196, 0.25);
+  background: var(--color-rule);
 }
 
 .timeline__head {
@@ -146,23 +146,25 @@ const toggleLabel = computed(() =>
 
 .timeline__role {
   font-family: var(--font-display);
-  font-size: 19px;
+  font-size: 1.1875rem;
   font-weight: 700;
-  letter-spacing: -0.3px;
-  color: var(--text);
+  letter-spacing: -0.015em;
+  color: var(--color-ink);
   line-height: 1.4;
 }
 
 .timeline__company {
-  font-size: 12px;
-  color: var(--accent);
-  letter-spacing: 1px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-accent);
+  letter-spacing: 0.01em;
 }
 
 .timeline__period {
-  font-size: 11px;
-  color: var(--rose);
-  letter-spacing: 1.2px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--color-warn);
+  letter-spacing: 0.04em;
   margin-left: auto;
 }
 
@@ -174,17 +176,29 @@ const toggleLabel = computed(() =>
 .timeline__toggle {
   margin-top: 36px;
   background: transparent;
-  border: 1px solid var(--accent-28);
+  border: 1px solid var(--color-rule);
   border-radius: var(--radius-sm);
-  color: var(--accent);
+  color: var(--color-ink);
   padding: 12px 20px;
-  font-size: 11px;
-  letter-spacing: 1.6px;
-  text-transform: uppercase;
-  transition: background-color 0.25s ease;
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow-x: auto;
+  transition: background-color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out);
+}
+
+@media (max-width: 26rem) {
+  .timeline__toggle {
+    padding: 10px 14px;
+    font-size: 0.6875rem;
+  }
 }
 
 .timeline__toggle:hover {
-  background: var(--accent-08);
+  border-color: var(--color-accent);
+  background: var(--color-accent-a08);
+  color: var(--color-accent);
 }
 </style>

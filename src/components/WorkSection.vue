@@ -49,38 +49,39 @@ import { projects } from '@/data/portfolio'
   flex-direction: column;
   gap: 1px;
   margin-top: 48px;
-  background: var(--accent-12);
+  background: var(--color-rule);
 }
 
 .work__item {
-  background: var(--bg);
+  background: var(--color-paper);
   padding: 32px clamp(4px, 2vw, 28px);
-  transition: background-color 0.35s ease;
+  transition: background-color var(--dur-short) var(--ease-out);
 }
 
 .work__row {
   display: grid;
-  grid-template-columns: 48px 1fr;
+  grid-template-columns: 48px minmax(0, 1fr);
   gap: clamp(12px, 3vw, 32px);
 }
 
 .work__item:hover {
-  background: var(--surface-hover);
+  background: var(--color-paper-2);
 }
 
 .work__index {
-  font-size: 12px;
-  color: var(--accent-50);
-  letter-spacing: 1px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-ink-3);
+  letter-spacing: 0.02em;
   padding-top: 4px;
 }
 
 .work__title {
   font-family: var(--font-display);
-  font-size: clamp(18px, 2.2vw, 24px);
+  font-size: clamp(1.125rem, 2.2vw, 1.5rem);
   font-weight: 700;
-  letter-spacing: -0.5px;
-  color: var(--text);
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
   line-height: 1.3;
 }
 
@@ -89,17 +90,18 @@ import { projects } from '@/data/portfolio'
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
-  font-size: 11px;
-  letter-spacing: 1.2px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
   line-height: 1.6;
 }
 
 .work__org {
-  color: var(--rose);
+  color: var(--color-warn);
 }
 
 .work__stack {
-  color: var(--text-dimmer);
+  color: var(--color-ink-4);
 }
 
 .work__bullets {

@@ -10,29 +10,32 @@ defineProps<{
 
 <template>
   <RevealItem class="heading">
+    <span class="heading__mark" aria-hidden="true"></span>
     <h2 :id="id" class="heading__title">{{ title }}</h2>
-    <!-- Decorative echo of the title; hidden from assistive tech. -->
-    <div class="heading__echo" aria-hidden="true">{{ title }}</div>
   </RevealItem>
 </template>
 
 <style scoped>
-.heading__title,
-.heading__echo {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(32px, 4.6vw, 56px);
-  letter-spacing: -1.6px;
-  line-height: 1;
+.heading {
+  padding-top: var(--space-2xs);
+}
+
+.heading__mark {
+  display: block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-bottom: var(--space-sm);
+  background: var(--color-accent);
+  border-radius: 2px;
 }
 
 .heading__title {
-  color: var(--accent);
-}
-
-.heading__echo {
-  margin-top: 2px;
-  color: var(--accent-16);
-  user-select: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-heading);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
 }
 </style>

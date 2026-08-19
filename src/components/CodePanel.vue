@@ -7,7 +7,6 @@ import { codeLineVariants, staggerContainer } from '@/motion/presets'
 import { snippets } from '@/data/snippets'
 
 const INTERVAL_MS = 7000
-const DRIFT_SECONDS = 11
 
 const prefersReducedMotion = usePrefersReducedMotion()
 
@@ -45,20 +44,8 @@ function onTabKeydown(event: KeyboardEvent, position: number) {
 </script>
 
 <template>
-  <motion.div
-    class="panel"
-    :animate="{ y: [0, -18, 0] }"
-    :transition="{ duration: DRIFT_SECONDS, repeat: Infinity, ease: 'easeInOut' }"
-    @mouseenter="pause"
-    @mouseleave="resume"
-    @focusin="pause"
-    @focusout="resume"
-  >
+  <div class="panel" @mouseenter="pause" @mouseleave="resume" @focusin="pause" @focusout="resume">
     <div class="panel__bar">
-      <span class="panel__dot panel__dot--rose" aria-hidden="true"></span>
-      <span class="panel__dot panel__dot--amber" aria-hidden="true"></span>
-      <span class="panel__dot panel__dot--accent" aria-hidden="true"></span>
-
       <span class="panel__file">{{ snippet.file }}</span>
 
       <div class="panel__tabs" role="tablist" aria-label="Code sample language">
@@ -132,17 +119,16 @@ function onTabKeydown(event: KeyboardEvent, position: number) {
         </motion.div>
       </AnimatePresence>
     </div>
-  </motion.div>
+  </div>
 </template>
 
 <style scoped>
 .panel {
-  border: 1px solid var(--accent-16);
+  border: 1px solid var(--color-rule);
   border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, rgba(14, 31, 30, 0.95), rgba(8, 20, 19, 0.95));
-  box-shadow: 0 40px 90px -50px rgba(61, 219, 196, 0.35);
+  background: var(--color-paper-2);
+  box-shadow: 0 24px 48px -32px oklch(8% 0.01 230 / 0.7);
   overflow: hidden;
-  will-change: transform;
 }
 
 .panel__bar {
@@ -151,32 +137,14 @@ function onTabKeydown(event: KeyboardEvent, position: number) {
   flex-wrap: wrap;
   gap: 8px;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--accent-12);
-}
-
-.panel__dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-}
-
-.panel__dot--rose {
-  background: rgba(216, 138, 166, 0.75);
-}
-
-.panel__dot--amber {
-  background: rgba(232, 197, 120, 0.6);
-}
-
-.panel__dot--accent {
-  background: var(--accent-60);
+  border-bottom: 1px solid var(--color-rule);
 }
 
 .panel__file {
-  margin-left: 8px;
-  font-size: 11px;
-  color: var(--text-dimmer);
-  letter-spacing: 1px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--color-ink-4);
+  letter-spacing: 0.04em;
 }
 
 .panel__tabs {
@@ -186,38 +154,44 @@ function onTabKeydown(event: KeyboardEvent, position: number) {
 }
 
 .panel__tab {
-  border: 1px solid var(--accent-14);
-  border-radius: 5px;
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-xs);
   background: transparent;
-  color: var(--text-dimmer);
-  font-size: 10px;
-  letter-spacing: 1.2px;
+  color: var(--color-ink-4);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 5px 10px;
   transition:
-    background-color 0.25s ease,
-    border-color 0.25s ease,
-    color 0.25s ease;
+    background-color var(--dur-short) var(--ease-out),
+    border-color var(--dur-short) var(--ease-out),
+    color var(--dur-short) var(--ease-out);
+}
+
+.panel__tab:hover {
+  color: var(--color-ink-2);
 }
 
 .panel__tab--active {
-  border-color: rgba(61, 219, 196, 0.45);
-  background: var(--accent-12);
-  color: var(--accent);
+  border-color: var(--color-accent);
+  background: var(--color-accent-a08);
+  color: var(--color-accent);
 }
 
 .panel__code {
   padding: 22px 20px;
   min-height: 302px;
-  font-size: 12.5px;
-  line-height: 1.9;
-  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.85;
+  color: var(--color-ink-2);
   overflow-x: auto;
 }
 
 .panel__line {
   white-space: pre;
-  min-height: 1.9em;
+  min-height: 1.85em;
 }
 
 .panel__caret {
@@ -226,45 +200,46 @@ function onTabKeydown(event: KeyboardEvent, position: number) {
   height: 0.95em;
   margin-left: 3px;
   vertical-align: -2px;
-  background: var(--accent);
+  background: var(--color-accent);
   animation: caret-blink 1.1s step-end infinite;
 }
 
 .tok--keyword {
-  color: var(--rose);
+  color: var(--color-alert);
 }
 
 .tok--fn {
-  color: var(--accent);
+  color: var(--color-accent);
 }
 
 .tok--string {
-  color: var(--accent-bright);
+  color: var(--color-accent-bright);
 }
 
 .tok--const {
-  color: var(--amber);
+  color: var(--color-warn);
 }
 
 .tok--comment {
-  color: var(--text-dimmer);
+  color: var(--color-ink-4);
 }
 
 .panel__badges {
   padding: 12px 20px;
-  border-top: 1px solid var(--accent-12);
+  border-top: 1px solid var(--color-rule);
 }
 
 .panel__badge-row {
   display: flex;
   flex-wrap: wrap;
   gap: 18px;
-  font-size: 11px;
-  letter-spacing: 1px;
-  color: var(--text-dimmer);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.02em;
+  color: var(--color-ink-4);
 }
 
 .panel__badge--lead {
-  color: var(--accent);
+  color: var(--color-accent);
 }
 </style>

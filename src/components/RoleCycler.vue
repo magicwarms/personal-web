@@ -77,11 +77,13 @@ const allRoles = roleTitles.join(', ')
 <style scoped>
 .roles {
   margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(38px, 6vw, 78px);
-  line-height: 1.02;
-  letter-spacing: -2.4px;
+  font-size: clamp(2.1rem, 6vw, 4.875rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
 }
 
 .roles__stack {
@@ -90,7 +92,7 @@ const allRoles = roleTitles.join(', ')
 
 .roles__line {
   display: block;
-  color: var(--accent);
+  color: var(--color-accent);
   will-change: transform, opacity, filter;
 }
 
@@ -98,13 +100,13 @@ const allRoles = roleTitles.join(', ')
   margin-top: 22px;
   height: 2px;
   width: min(320px, 100%);
-  background: var(--accent-14);
+  background: var(--color-rule);
   overflow: hidden;
 }
 
 .roles__progress {
   height: 100%;
-  background: var(--accent);
+  background: var(--color-accent);
   transform-origin: left center;
 }
 </style>

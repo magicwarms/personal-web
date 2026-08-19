@@ -176,7 +176,9 @@ async function onSubmit() {
 }
 
 .contact__intro {
-  color: var(--text-muted);
+  color: var(--color-ink-2);
+  font-size: 1.0625rem;
+  line-height: 1.7;
   max-width: 42ch;
 }
 
@@ -187,32 +189,33 @@ async function onSubmit() {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  background: var(--accent-14);
-  border: 1px solid var(--accent-14);
+  background: var(--color-rule);
+  border: 1px solid var(--color-rule);
   border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
 .contact__link {
-  background: var(--surface);
+  background: var(--color-paper-2);
   padding: 18px 20px;
   display: flex;
   justify-content: space-between;
   gap: 16px;
   align-items: center;
-  color: var(--text);
+  color: var(--color-ink);
   transition:
-    background-color 0.25s ease,
-    color 0.25s ease;
+    background-color var(--dur-short) var(--ease-out),
+    color var(--dur-short) var(--ease-out);
 }
 
 .contact__link:hover {
-  background: var(--surface-raised);
-  color: var(--accent);
+  background: var(--color-paper-3);
+  color: var(--color-accent);
 }
 
 .contact__value {
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
 }
 
 .contact__cv {
@@ -223,10 +226,10 @@ async function onSubmit() {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  border: 1px solid var(--accent-14);
+  border: 1px solid var(--color-rule);
   border-radius: var(--radius-lg);
   padding: clamp(20px, 3vw, 32px);
-  background: rgba(8, 22, 21, 0.6);
+  background: var(--color-paper-2);
 }
 
 .contact__field {
@@ -237,14 +240,14 @@ async function onSubmit() {
 
 .contact__field input,
 .contact__field textarea {
-  background: var(--surface-raised);
-  border: 1px solid rgba(61, 219, 196, 0.18);
+  background: var(--color-paper-3);
+  border: 1px solid var(--color-rule);
   border-radius: var(--radius-sm);
   padding: 12px 14px;
-  color: var(--text);
-  font-size: 13px;
+  color: var(--color-ink);
+  font-size: 0.9375rem;
   outline: none;
-  transition: border-color 0.25s ease;
+  transition: border-color var(--dur-short) var(--ease-out);
 }
 
 .contact__field textarea {
@@ -253,28 +256,31 @@ async function onSubmit() {
 
 .contact__field input:focus,
 .contact__field textarea:focus {
-  border-color: var(--accent);
+  border-color: var(--color-accent);
 }
 
 .contact__field input::placeholder,
 .contact__field textarea::placeholder {
-  color: var(--text-dimmer);
+  color: var(--color-ink-4);
 }
 
 .contact__submit {
   background: transparent;
-  border: 1px solid var(--accent-40);
+  border: 1px solid var(--color-rule);
   border-radius: var(--radius-sm);
-  color: var(--accent);
+  color: var(--color-ink);
   padding: 13px 22px;
-  font-size: 11px;
-  letter-spacing: 1.6px;
-  text-transform: uppercase;
-  transition: background-color 0.25s ease;
+  min-height: 44px;
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition: background-color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out);
 }
 
 .contact__submit:hover:not(:disabled) {
-  background: var(--accent-12);
+  border-color: var(--color-accent);
+  background: var(--color-accent-a08);
+  color: var(--color-accent);
 }
 
 .contact__submit:disabled {
@@ -295,17 +301,17 @@ async function onSubmit() {
 }
 
 .contact__status {
-  font-size: 11px;
+  font-size: 0.8125rem;
   line-height: 1.7;
-  color: var(--text-dimmer);
-  transition: color 0.25s ease;
+  color: var(--color-ink-4);
+  transition: color var(--dur-short) var(--ease-out);
 }
 
 .contact__status--success {
-  color: var(--accent);
+  color: var(--color-accent);
 }
 
 .contact__status--error {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 </style>
