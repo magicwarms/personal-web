@@ -1,29 +1,49 @@
 <script setup lang="ts">
-import { motion } from 'motion-v'
-import { easeOut, revealViewport } from '@/motion/presets'
+import { ref } from 'vue'
+import { gsap } from '@/motion/gsap'
+import { useSectionMotion } from '@/composables/useSectionMotion'
 
 /**
- * Scroll reveal used across the site: fade and rise, once, on entry.
- * Wrapping it here keeps the viewport config in one place instead of being
- * copy-pasted onto three dozen elements. Sections that need a different
- * element (article, li) bind `revealProps` onto their own motion component.
+ * The baseline scroll reveal — a settle, not a performance. Sections with
+ * their own choreography (headings, work, experience, stack, credentials)
+ * build it directly; this is for everything that just needs to arrive
+ * without ceremony.
  */
-withDefaults(
+const props = withDefaults(
   defineProps<{
     /** Seconds to hold back, for hand-tuned cascades. */
     delay?: number
   }>(),
   { delay: 0 },
 )
+
+const root = ref<HTMLElement | null>(null)
+
+useSectionMotion(
+  root,
+  ({ reduceMotion }) => {
+    const el = root.value
+    if (!el) return
+
+    if (reduceMotion) {
+      gsap.set(el, { autoAlpha: 1, clearProps: 'transform' })
+      return
+    }
+
+    gsap.to(el, {
+      autoAlpha: 1,
+      y: 0,
+      duration: 0.6,
+      delay: props.delay,
+      scrollTrigger: { trigger: el, start: 'top 88%', once: true },
+    })
+  },
+  (el) => gsap.set(el, { autoAlpha: 0, y: 10 }),
+)
 </script>
 
 <template>
-  <motion.div
-    :initial="{ opacity: 0, y: 22 }"
-    :whileInView="{ opacity: 1, y: 0 }"
-    :inViewOptions="revealViewport"
-    :transition="{ duration: 0.7, ease: easeOut, delay }"
-  >
+  <div ref="root">
     <slot />
-  </motion.div>
+  </div>
 </template>

@@ -30,7 +30,7 @@ jobs:
       # The site must NOT use --resolve: the origin serves a self-signed cert for
       # this host (LE's HTTP-01 challenge can't reach it through Cloudflare), so
       # health checks go through Cloudflare, which does not challenge this host.
-      SITE_URL: https://magicwarms.my.id
+      SITE_URL: https://andhanautama.id
     steps:
       - uses: actions/checkout@v4
 

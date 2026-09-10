@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { AnimatePresence, motion } from 'motion-v'
+import { gsap } from '@/motion/gsap'
 import { useCycle } from '@/composables/useCycle'
 import { usePrefersReducedMotion } from '@/composables/usePrefersReducedMotion'
-import { codeLineVariants, staggerContainer } from '@/motion/presets'
 import { snippets } from '@/data/snippets'
 
 const INTERVAL_MS = 7000
-const DRIFT_SECONDS = 11
 
 const prefersReducedMotion = usePrefersReducedMotion()
 
@@ -18,8 +16,27 @@ const { index, select, pause, resume } = useCycle({
 })
 
 const snippet = computed(() => snippets[index.value]!)
-const lineVariants = staggerContainer(0.055)
-const badgeVariants = staggerContainer(0.05)
+
+/**
+ * Shared enter/leave for both swapping blocks: lines and badges arrive the
+ * same way, only at different rhythms.
+ */
+function slideIn(selector: string, stagger: number) {
+  return (element: Element, done: () => void) => {
+    gsap.fromTo(
+      element.querySelectorAll(selector),
+      { autoAlpha: 0, x: -8 },
+      { autoAlpha: 1, x: 0, duration: 0.32, stagger, onComplete: done },
+    )
+  }
+}
+
+function fadeOut(element: Element, done: () => void) {
+  gsap.to(element, { autoAlpha: 0, duration: 0.12, onComplete: done })
+}
+
+const onLinesEnter = slideIn('.panel__line', 0.055)
+const onBadgesEnter = slideIn('.panel__badge', 0.05)
 
 const tabRefs = ref<HTMLButtonElement[]>([])
 
@@ -45,20 +62,8 @@ function onTabKeydown(event: KeyboardEvent, position: number) {
 </script>
 
 <template>
-  <motion.div
-    class="panel"
-    :animate="{ y: [0, -18, 0] }"
-    :transition="{ duration: DRIFT_SECONDS, repeat: Infinity, ease: 'easeInOut' }"
-    @mouseenter="pause"
-    @mouseleave="resume"
-    @focusin="pause"
-    @focusout="resume"
-  >
+  <div class="panel" @mouseenter="pause" @mouseleave="resume" @focusin="pause" @focusout="resume">
     <div class="panel__bar">
-      <span class="panel__dot panel__dot--rose" aria-hidden="true"></span>
-      <span class="panel__dot panel__dot--amber" aria-hidden="true"></span>
-      <span class="panel__dot panel__dot--accent" aria-hidden="true"></span>
-
       <span class="panel__file">{{ snippet.file }}</span>
 
       <div class="panel__tabs" role="tablist" aria-label="Code sample language">
@@ -89,60 +94,52 @@ function onTabKeydown(event: KeyboardEvent, position: number) {
       :aria-labelledby="`code-tab-${snippet.id}`"
       tabindex="0"
     >
-      <AnimatePresence mode="wait">
-        <motion.div
-          :key="snippet.id"
-          :variants="lineVariants"
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-        >
-          <motion.div
+      <Transition mode="out-in" :css="false" @enter="onLinesEnter" @leave="fadeOut">
+        <div :key="snippet.id">
+          <div
             v-for="(line, lineNumber) in snippet.lines"
             :key="lineNumber"
             class="panel__line"
-            :variants="codeLineVariants"
           >
             <span v-for="(token, position) in line" :key="position" :class="`tok tok--${token.kind}`">{{ token.text }}</span>
             <span v-if="lineNumber === snippet.lines.length - 1" class="panel__caret" aria-hidden="true"></span>
-          </motion.div>
-        </motion.div>
-      </AnimatePresence>
+          </div>
+        </div>
+      </Transition>
     </div>
 
     <div class="panel__badges">
-      <AnimatePresence mode="wait">
-        <motion.div
-          :key="snippet.id"
-          class="panel__badge-row"
-          :variants="badgeVariants"
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-        >
-          <motion.span
+      <Transition mode="out-in" :css="false" @enter="onBadgesEnter" @leave="fadeOut">
+        <div :key="snippet.id" class="panel__badge-row">
+          <span
             v-for="(badge, position) in snippet.badges"
             :key="badge"
             class="panel__badge"
             :class="{ 'panel__badge--lead': position === 0 }"
-            :variants="codeLineVariants"
           >
             {{ badge }}
-          </motion.span>
-        </motion.div>
-      </AnimatePresence>
+          </span>
+        </div>
+      </Transition>
     </div>
-  </motion.div>
+  </div>
 </template>
 
 <style scoped>
 .panel {
-  border: 1px solid var(--accent-16);
-  border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, rgba(14, 31, 30, 0.95), rgba(8, 20, 19, 0.95));
-  box-shadow: 0 40px 90px -50px rgba(61, 219, 196, 0.35);
-  overflow: hidden;
-  will-change: transform;
+  position: relative;
+  /* No border, no card fill, no shadow (DESIGN.md: elements float on
+     black with whitespace alone). A soft radial scrim keeps the code
+     legible against the particle cloud sitting behind it. */
+  padding: 22px 4px;
+}
+
+.panel::before {
+  content: '';
+  position: absolute;
+  inset: -10%;
+  z-index: -1;
+  background: radial-gradient(ellipse at center, color-mix(in oklch, var(--color-void) 88%, transparent) 55%, transparent 100%);
 }
 
 .panel__bar {
@@ -150,74 +147,55 @@ function onTabKeydown(event: KeyboardEvent, position: number) {
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--accent-12);
-}
-
-.panel__dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-}
-
-.panel__dot--rose {
-  background: rgba(216, 138, 166, 0.75);
-}
-
-.panel__dot--amber {
-  background: rgba(232, 197, 120, 0.6);
-}
-
-.panel__dot--accent {
-  background: var(--accent-60);
+  padding: 0 16px 14px;
 }
 
 .panel__file {
-  margin-left: 8px;
-  font-size: 11px;
-  color: var(--text-dimmer);
-  letter-spacing: 1px;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--color-ink-3);
+  letter-spacing: 0.04em;
 }
 
 .panel__tabs {
   margin-left: auto;
   display: flex;
-  gap: 6px;
+  gap: 18px;
 }
 
 .panel__tab {
-  border: 1px solid var(--accent-14);
-  border-radius: 5px;
+  border: none;
   background: transparent;
-  color: var(--text-dimmer);
-  font-size: 10px;
-  letter-spacing: 1.2px;
+  color: var(--color-ink-3);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 5px 10px;
-  transition:
-    background-color 0.25s ease,
-    border-color 0.25s ease,
-    color 0.25s ease;
+  padding: 0;
+  transition: color var(--dur-short) var(--ease-out);
+}
+
+.panel__tab:hover {
+  color: var(--color-ink-2);
 }
 
 .panel__tab--active {
-  border-color: rgba(61, 219, 196, 0.45);
-  background: var(--accent-12);
-  color: var(--accent);
+  color: var(--color-accent-bright);
 }
 
 .panel__code {
-  padding: 22px 20px;
+  padding: 8px 16px 22px;
   min-height: 302px;
-  font-size: 12.5px;
-  line-height: 1.9;
-  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.85;
+  color: var(--color-ink-2);
   overflow-x: auto;
 }
 
 .panel__line {
   white-space: pre;
-  min-height: 1.9em;
+  min-height: 1.85em;
 }
 
 .panel__caret {
@@ -226,45 +204,49 @@ function onTabKeydown(event: KeyboardEvent, position: number) {
   height: 0.95em;
   margin-left: 3px;
   vertical-align: -2px;
-  background: var(--accent);
+  background: var(--color-accent);
   animation: caret-blink 1.1s step-end infinite;
 }
 
+/* Syntax palette drawn from the particle field's own chromatic spectrum,
+   not the neutral grays a code theme would normally reach for. */
 .tok--keyword {
-  color: var(--rose);
+  color: #c26bff;
 }
 
 .tok--fn {
-  color: var(--accent);
+  color: var(--color-accent-bright);
 }
 
 .tok--string {
-  color: var(--accent-bright);
+  /* Lighter than --color-deep-verdant (4.56:1, right at the AA floor for
+     13px text) so the token stays comfortably readable. */
+  color: #1fa88c;
 }
 
 .tok--const {
-  color: var(--amber);
+  color: var(--color-warn);
 }
 
 .tok--comment {
-  color: var(--text-dimmer);
+  color: var(--color-ink-3);
 }
 
 .panel__badges {
-  padding: 12px 20px;
-  border-top: 1px solid var(--accent-12);
+  padding: 14px 16px 0;
 }
 
 .panel__badge-row {
   display: flex;
   flex-wrap: wrap;
   gap: 18px;
-  font-size: 11px;
-  letter-spacing: 1px;
-  color: var(--text-dimmer);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.02em;
+  color: var(--color-ink-4);
 }
 
 .panel__badge--lead {
-  color: var(--accent);
+  color: var(--color-accent);
 }
 </style>

@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { MotionConfig } from 'motion-v'
+import { onMounted, onUnmounted } from 'vue'
 import AppHeader from './components/AppHeader.vue'
 import AppFooter from './components/AppFooter.vue'
 import HeroSection from './components/HeroSection.vue'
+import SystemMark from './components/ui/SystemMark.vue'
+import ParticleField from './components/ui/ParticleField.vue'
 import StatsStrip from './components/StatsStrip.vue'
 import AboutSection from './components/AboutSection.vue'
 import WorkSection from './components/WorkSection.vue'
@@ -10,75 +12,68 @@ import ExperienceSection from './components/ExperienceSection.vue'
 import StackSection from './components/StackSection.vue'
 import CredentialsSection from './components/CredentialsSection.vue'
 import ContactSection from './components/ContactSection.vue'
-import { revealTransition } from './motion/presets'
+import { ScrollTrigger, gsap } from './motion/gsap'
+import { writeEnergy } from './motion/scrollEnergy'
+
+/**
+ * One page-level ScrollTrigger with no animation attached, purely to publish
+ * scroll velocity to the particle field. Normalised to roughly -1..1 so the
+ * canvas can treat it as a dimensionless "how hard are we moving" number
+ * rather than pixels per second.
+ */
+let velocityFeed: ScrollTrigger | undefined
+
+onMounted(() => {
+  velocityFeed = ScrollTrigger.create({
+    onUpdate: (self) => writeEnergy(gsap.utils.clamp(-1, 1, self.getVelocity() / 3000)),
+  })
+})
+
+onUnmounted(() => {
+  velocityFeed?.kill()
+  writeEnergy(0)
+})
 </script>
 
 <template>
-  <!-- `reducedMotion: user` makes every Motion transform animation honour the
-       OS setting; the CSS-only ambient effects are handled in base.css. -->
-  <MotionConfig :transition="revealTransition" reducedMotion="user">
-    <a class="skip-link" href="#main">Skip to content</a>
+  <!-- Reduced motion is honoured per-section by `useSectionMotion`, which
+       builds the static end state instead of the animation; the CSS-only
+       ambient effects are handled in base.css. -->
+  <a class="skip-link" href="#main">Skip to content</a>
 
-    <div class="page">
-      <div class="page__glow" aria-hidden="true"></div>
-      <div class="page__grid" aria-hidden="true"></div>
+  <div class="page">
+    <ParticleField variant="ambient" />
 
-      <AppHeader />
+    <AppHeader />
 
-      <main id="main" class="shell page__main">
-        <div id="top"></div>
-        <HeroSection />
-        <StatsStrip />
-        <AboutSection />
-        <WorkSection />
-        <ExperienceSection />
-        <StackSection />
-        <CredentialsSection />
-        <ContactSection />
-      </main>
+    <main id="main" class="shell page__main">
+      <div id="top"></div>
+      <HeroSection />
+      <SystemMark />
+      <StatsStrip />
+      <AboutSection />
+      <WorkSection />
+      <ExperienceSection />
+      <StackSection />
+      <CredentialsSection />
+      <ContactSection />
+    </main>
 
-      <AppFooter />
-    </div>
-  </MotionConfig>
+    <AppFooter />
+  </div>
 </template>
 
 <style scoped>
 .page {
   position: relative;
-  min-height: 100vh;
-  background: var(--bg);
-  /* `clip` rather than `hidden`: it contains stray horizontal overflow without
-     turning the page into a scroll container, which would break the sticky
-     header. */
-  overflow-x: clip;
-}
-
-.page__glow,
-.page__grid {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.page__glow {
-  background:
-    radial-gradient(900px 700px at 78% 8%, rgba(61, 219, 196, 0.13), transparent 60%),
-    radial-gradient(700px 600px at 8% 62%, rgba(61, 219, 196, 0.06), transparent 62%);
-}
-
-.page__grid {
-  opacity: 0.5;
-  background-image:
-    linear-gradient(rgba(61, 219, 196, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(61, 219, 196, 0.05) 1px, transparent 1px);
-  background-size: 88px 88px;
-  mask-image: radial-gradient(1100px 800px at 70% 0%, #000 0%, transparent 75%);
-  -webkit-mask-image: radial-gradient(1100px 800px at 70% 0%, #000 0%, transparent 75%);
+  /* Own stacking context, so the fixed ambient ParticleField (z-index -1)
+     resolves against this boundary instead of the document root. */
+  isolation: isolate;
+  min-height: 100dvh;
+  background: var(--color-paper);
 }
 
 .page__main {
   position: relative;
-  z-index: 1;
 }
 </style>

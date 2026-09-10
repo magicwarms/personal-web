@@ -1,48 +1,111 @@
+/* Dala void system: dark-stage, pure black canvas, one violet accent,
+ * amber punctuation. Sourced from DESIGN.md. Primitives use DESIGN.md's
+ * own names; semantic aliases below are what components actually
+ * reference, so the token rename does not require touching every call
+ * site.
+ * display/body: Switzer (free substitute for PP Neue Montreal, see
+ * DESIGN.md's own "Substitute: Inter" note; Switzer is closer geometry)
+ * mono: JetBrains Mono, kept for the CodePanel real code content since
+ * DESIGN.md has no code-display component, and code reads as code.
+ */
+
 /* ---------------------------------------------------------------------------
    Design tokens
-   Palette and type scale are ported 1:1 from the source design so the built
-   site is pixel-faithful; everything downstream references these variables.
 --------------------------------------------------------------------------- */
 :root {
-  --bg: #06100f;
-  --surface: #081615;
-  --surface-raised: #0c1f1e;
-  --surface-hover: #0a1a19;
+  /* Colors — primitives, DESIGN.md's exact values/names. */
+  --color-void: #000000;
+  --color-bone-white: #ffffff;
+  --color-ash-gray: #9a9a9a;
+  --color-silver-mist: #bdbdbd;
+  --color-electric-iris: #8052ff;
+  --color-saffron-spark: #ffb829;
+  --color-deep-verdant: #15846e;
 
-  --accent: #3ddbc4;
-  --accent-bright: #8ff0e0;
-  --accent-08: rgba(61, 219, 196, 0.08);
-  --accent-12: rgba(61, 219, 196, 0.12);
-  --accent-14: rgba(61, 219, 196, 0.14);
-  --accent-16: rgba(61, 219, 196, 0.16);
-  --accent-20: rgba(61, 219, 196, 0.2);
-  --accent-28: rgba(61, 219, 196, 0.28);
-  --accent-40: rgba(61, 219, 196, 0.4);
-  --accent-50: rgba(61, 219, 196, 0.5);
-  --accent-60: rgba(61, 219, 196, 0.6);
+  /* Iris text variant: #8052ff is 4.57:1 on black, which fails AA for
+     text under 18.66px. Fills (buttons, dots, logo, particles) keep the
+     exact spec hex; small violet text (role labels, active tab) uses
+     this lighter step instead. 6.0:1 on black. */
+  --color-electric-iris-text: #9370ff;
 
-  --rose: #d88aa6;
-  --amber: #e8c578;
+  /* Danger: not in DESIGN.md, the system has no error state defined.
+     Picked to sit outside the violet/amber pair so it never reads as
+     "the brand color", same reasoning DESIGN.md gives for keeping alert
+     apart from accent. 7.45:1 on black. */
+  --color-danger: #ff6961;
 
-  /* Semantic alias — form errors reuse the existing rose rather than
-     introducing a red that sits outside the ported palette. */
-  --danger: var(--rose);
+  /* Semantic aliases — existing component code reads these names. */
+  --color-paper: var(--color-void);
+  --color-ink: var(--color-bone-white);
+  --color-ink-2: var(--color-silver-mist);
+  --color-ink-3: var(--color-ash-gray);
+  --color-ink-4: var(--color-ash-gray);
+  --color-accent: var(--color-electric-iris);
+  --color-accent-bright: var(--color-electric-iris-text);
+  --color-accent-ink: #ffffff;
+  --color-focus: var(--color-electric-iris-text);
+  --color-warn: var(--color-saffron-spark);
+  --color-alert: var(--color-danger);
 
-  --text: #d7e5e2;
-  --text-muted: #9db3ae;
-  --text-dim: #7d938f;
-  --text-dimmer: #6b807c;
+  /* The one surviving rule token: contact-form inputs only. Everything
+     else on the page floats on black with whitespace alone. */
+  --color-field-rule: color-mix(in oklch, var(--color-bone-white) 22%, transparent);
 
-  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Switzer', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Switzer', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --shell-max: 1180px;
-  --shell-pad: clamp(20px, 5vw, 56px);
-  --section-pad: clamp(80px, 12vh, 140px);
-  --radius-sm: 6px;
-  --radius-lg: 12px;
+  /* Type scale — fluid, anchored so the max equals DESIGN.md's stated
+     px. Tracking is -0.04em across every size DESIGN.md lists (113 / 78
+     / 42px all resolve to the same -0.04em), so one token covers the
+     whole display range and survives the clamp. */
+  --tracking-display: -0.04em;
+  --tracking-tight: -0.02em;
+  --tracking-label: 0.025em;
 
-  --ease-out: cubic-bezier(0.22, 0.7, 0.2, 1);
+  --text-caption: 0.75rem; /* 12px */
+  --text-nav-label: 0.875rem; /* 14px */
+  --text-body: 1.125rem; /* 18px */
+  --text-heading-2xs: 1.5rem; /* 24px */
+  --text-heading-xs: 1.6875rem; /* 27px */
+  --text-subheading: clamp(1.5rem, 2.6vw, 2.25rem); /* 24 -> 36px */
+  --text-heading-sm: clamp(1.875rem, 3.4vw, 2.625rem); /* 30 -> 42px */
+  --text-heading: clamp(2rem, 4vw, 3rem); /* 32 -> 48px */
+  --text-heading-lg: clamp(2.5rem, 6vw, 4.875rem); /* 40 -> 78px */
+  --text-display: clamp(3rem, 8.5vw, 7.0625rem); /* 48 -> 113px */
+
+  /* Weights — 400 carries every heading (never bold: hierarchy is scale
+     + tracking, not weight). 200 is the body signature. 600 is
+     nav/labels. */
+  --font-weight-extralight: 200;
+  --font-weight-regular: 400;
+  --font-weight-semibold: 600;
+
+  /* Spacing — 6px base unit. */
+  --spacing-6: 6px;
+  --spacing-12: 12px;
+  --spacing-18: 18px;
+  --spacing-24: 24px;
+  --spacing-30: 30px;
+  --spacing-36: 36px;
+  --spacing-60: 60px;
+  --spacing-96: 96px;
+  --spacing-120: 120px;
+
+  --shell-max: 1280px;
+  --shell-pad: clamp(20px, 5vw, 56px);
+  --section-pad: clamp(60px, 9vh, 120px);
+
+  --radius-3xl: 24px;
+  --radius-full: 9999px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --dur-micro: 120ms;
+  --dur-short: 220ms;
+  --dur-long: 420ms;
 }
 
 *,
@@ -51,19 +114,26 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  overflow-x: clip;
+}
+
 html {
   scroll-behavior: smooth;
-  /* Sticky header height + breathing room, so anchors never land under it. */
-  scroll-padding-top: 96px;
+  /* Nav bar height + breathing room, so anchors never land under it. */
+  scroll-padding-top: 84px;
 }
 
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 14px;
-  line-height: 1.85;
+  background: var(--color-void);
+  color: var(--color-silver-mist);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-extralight);
+  line-height: 1.5;
+  font-feature-settings: 'ss01' 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -78,14 +148,24 @@ blockquote {
   margin: 0;
 }
 
+/* Links inherit white — violet is a fill color (buttons, logo, accents),
+   never a link color, per DESIGN.md's Don'ts. Amber is for emphasis. */
 a {
-  color: var(--accent);
+  color: inherit;
   text-decoration: none;
-  transition: color 0.25s ease;
+  transition: color var(--dur-short) var(--ease-out);
 }
 
 a:hover {
-  color: var(--accent-bright);
+  color: var(--color-bone-white);
+}
+
+.link--emphasis {
+  color: var(--color-saffron-spark);
+}
+
+.link--emphasis:hover {
+  color: var(--color-bone-white);
 }
 
 img {
@@ -105,14 +185,15 @@ button {
 }
 
 ::selection {
-  background: var(--accent);
-  color: var(--bg);
+  background: var(--color-electric-iris);
+  color: var(--color-accent-ink);
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--color-focus);
   outline-offset: 3px;
   border-radius: 3px;
+  transition: none;
 }
 
 /* --------------------------------------------------------------------------
@@ -126,82 +207,102 @@ button {
 }
 
 .eyebrow {
-  font-size: 11px;
-  letter-spacing: 1.8px;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--text-nav-label);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--text-dimmer);
+  color: var(--color-saffron-spark);
 }
 
+.eyebrow--muted {
+  color: var(--color-ash-gray);
+}
+
+/* Primary Action Button — filled violet pill, the sole interactive CTA.
+   Reserved for one per view (DESIGN.md Don'ts); demote a second button
+   to .btn--ghost. */
 .btn {
-  display: inline-block;
-  padding: 13px 22px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1.6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  white-space: nowrap;
+  min-height: 44px;
+  border: none;
+  font-family: var(--font-display);
+  font-size: var(--text-nav-label);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   transition:
-    background-color 0.25s ease,
-    border-color 0.25s ease,
-    color 0.25s ease;
+    background-color var(--dur-short) var(--ease-out),
+    color var(--dur-short) var(--ease-out),
+    transform 100ms var(--ease-out);
+}
+
+.btn:active {
+  transform: translateY(1px);
 }
 
 .btn--solid {
-  background: var(--accent);
-  color: var(--bg);
+  padding: 14.4px 15.96px;
+  background: var(--color-electric-iris);
+  color: var(--color-accent-ink);
+  border-radius: var(--radius-3xl);
 }
 
 .btn--solid:hover {
-  background: var(--accent-bright);
-  color: var(--bg);
+  background: var(--color-electric-iris-text);
+  color: var(--color-accent-ink);
 }
 
+/* Ghost Text Button — no background, no border; hierarchy comes from
+   weight and tracking alone. */
 .btn--ghost {
-  border-color: var(--accent-40);
-  color: var(--text);
-  font-weight: 400;
+  padding: 0;
+  min-height: 0;
+  background: none;
+  color: var(--color-bone-white);
 }
 
 .btn--ghost:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-12);
+  color: var(--color-saffron-spark);
 }
 
 .pill {
-  border: 1px solid var(--accent-20);
-  border-radius: 9999px;
-  padding: 6px 13px;
-  font-size: 12px;
-  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  color: var(--color-silver-mist);
 }
 
 .bullets {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0.65rem;
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 13px;
-  line-height: 1.75;
-  color: var(--text-muted);
+  font-size: var(--text-nav-label);
+  line-height: 1.7;
+  /* Bone white, not silver: these bullets are primary content, and
+     DESIGN.md lists bone white for body text (silver mist is reserved for
+     tertiary, caption-level copy). */
+  color: var(--color-ink);
 }
 
 .bullets li {
   display: flex;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .bullets li::before {
   content: '▸';
-  color: var(--accent);
+  color: var(--color-saffron-spark);
   flex: none;
 }
 
 .bullets--soft li::before {
-  color: var(--accent-60);
+  color: var(--color-ash-gray);
 }
 
 .skip-link {
@@ -210,18 +311,18 @@ button {
   top: -100px;
   z-index: 100;
   padding: 10px 16px;
-  border-radius: var(--radius-sm);
-  background: var(--accent);
-  color: var(--bg);
+  border-radius: var(--radius-3xl);
+  background: var(--color-electric-iris);
+  color: var(--color-accent-ink);
   font-size: 12px;
-  letter-spacing: 1.4px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  transition: top 0.2s ease;
+  transition: top var(--dur-short) var(--ease-out);
 }
 
 .skip-link:focus-visible {
   top: 12px;
-  color: var(--bg);
+  color: var(--color-accent-ink);
 }
 
 /* Visually hidden but available to assistive tech. */
@@ -251,16 +352,6 @@ button {
   }
 }
 
-.caret {
-  display: inline-block;
-  width: 8px;
-  height: 13px;
-  margin-left: 6px;
-  vertical-align: -1px;
-  background: var(--accent);
-  animation: caret-blink 1.1s step-end infinite;
-}
-
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -272,9 +363,5 @@ button {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-
-  .caret {
-    opacity: 1;
   }
 }

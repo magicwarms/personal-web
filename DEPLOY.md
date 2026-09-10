@@ -94,8 +94,9 @@ and this must go back to `1` — otherwise Express trusts one entry too many and
 spoof `X-Forwarded-For` to pick its own rate-limit key.
 
 **Blank page or missing fonts after deploy.** Check the browser console for CSP
-violations. The policy in `server/index.ts` allowlists `fonts.googleapis.com` and
-`fonts.gstatic.com`; any new third-party asset needs adding there.
+violations. The policy in `server/index.ts` allowlists `fonts.googleapis.com` /
+`fonts.gstatic.com` (JetBrains Mono) and `api.fontshare.com` / `cdn.fontshare.com`
+(Switzer); any new third-party asset needs adding there.
 
 **Certificate is self-signed.** DNS was not resolving when the app was first deployed.
 Fix the `A` record, then redeploy so Traefik retries the ACME challenge.
