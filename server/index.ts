@@ -37,11 +37,12 @@ app.use(
         // The production build emits no inline script — every bundle is a
         // separate hashed file — so 'self' needs no nonce or hash alongside it.
         scriptSrc: ["'self'"],
-        // fonts.googleapis.com serves the stylesheet linked from index.html.
+        // fonts.googleapis.com serves JetBrains Mono (code display);
+        // api.fontshare.com serves Switzer, the display/body typeface.
         // 'unsafe-inline' is here for the inline style attributes motion-v
         // writes while animating; no stylesheet depends on it.
-        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://api.fontshare.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://cdn.fontshare.com'],
         imgSrc: ["'self'", 'data:'],
         // The contact form only ever posts back to this same origin.
         connectSrc: ["'self'"],

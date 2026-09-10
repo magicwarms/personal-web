@@ -1,76 +1,103 @@
-/* Hallmark · genre: modern-minimal · macrostructure: Split Studio (adapted, single-page IA preserved)
- * theme: custom (studied DNA: usehallmark.com/examples/wayfare — palette + type only, not the travel content)
- * vibe: "stamped and dated, warm terracotta signal, quietly confident"
- * paper: oklch(12% 0.012 50) · accent: oklch(66% 0.2 28)
- * display: Bricolage Grotesque · body: Newsreader · mono: JetBrains Mono · axes: dark / geometric-sans / warm
- * nav: N5 floating pill · footer: Ft2 inline single line · studied: DNA (source: url) · context: user-directed
+/* Dala void system: dark-stage, pure black canvas, one violet accent,
+ * amber punctuation. Sourced from DESIGN.md. Primitives use DESIGN.md's
+ * own names; semantic aliases below are what components actually
+ * reference, so the token rename does not require touching every call
+ * site.
+ * display/body: Switzer (free substitute for PP Neue Montreal, see
+ * DESIGN.md's own "Substitute: Inter" note; Switzer is closer geometry)
+ * mono: JetBrains Mono, kept for the CodePanel real code content since
+ * DESIGN.md has no code-display component, and code reads as code.
  */
 
 /* ---------------------------------------------------------------------------
    Design tokens
 --------------------------------------------------------------------------- */
 :root {
-  /* Surfaces — warm-tinted dark, never pure black. Each step is a lightness
-     increase, matching how elevation should read on a dark UI. */
-  --color-paper: oklch(12% 0.012 50);
-  --color-paper-2: oklch(15% 0.014 50);
-  --color-paper-3: oklch(19% 0.016 50);
+  /* Colors — primitives, DESIGN.md's exact values/names. */
+  --color-void: #000000;
+  --color-bone-white: #ffffff;
+  --color-ash-gray: #9a9a9a;
+  --color-silver-mist: #bdbdbd;
+  --color-electric-iris: #8052ff;
+  --color-saffron-spark: #ffb829;
+  --color-deep-verdant: #15846e;
 
-  /* Structural dividers — neutral, not accent-tinted. The accent is reserved
-     for interactive/active signal, not for drawing every seam on the page. */
-  --color-rule: oklch(29% 0.016 50);
-  --color-rule-2: oklch(23% 0.016 50);
+  /* Iris text variant: #8052ff is 4.57:1 on black, which fails AA for
+     text under 18.66px. Fills (buttons, dots, logo, particles) keep the
+     exact spec hex; small violet text (role labels, active tab) uses
+     this lighter step instead. 6.0:1 on black. */
+  --color-electric-iris-text: #9370ff;
 
-  /* Text — four steps from full-contrast to incidental. */
-  --color-ink: oklch(94% 0.008 60);
-  --color-ink-2: oklch(75% 0.01 55);
-  --color-ink-3: oklch(59% 0.01 55);
-  --color-ink-4: oklch(46% 0.012 55);
+  /* Danger: not in DESIGN.md, the system has no error state defined.
+     Picked to sit outside the violet/amber pair so it never reads as
+     "the brand color", same reasoning DESIGN.md gives for keeping alert
+     apart from accent. 7.45:1 on black. */
+  --color-danger: #ff6961;
 
-  /* Accent — one signal hue (a stamped, boarding-pass terracotta-red), used
-     for interactive/active state only. */
-  --color-accent: oklch(66% 0.2 28);
-  --color-accent-bright: oklch(76% 0.16 28);
-  --color-accent-ink: oklch(14% 0.03 28);
-  --color-focus: oklch(78% 0.17 55);
+  /* Semantic aliases — existing component code reads these names. */
+  --color-paper: var(--color-void);
+  --color-ink: var(--color-bone-white);
+  --color-ink-2: var(--color-silver-mist);
+  --color-ink-3: var(--color-ash-gray);
+  --color-ink-4: var(--color-ash-gray);
+  --color-accent: var(--color-electric-iris);
+  --color-accent-bright: var(--color-electric-iris-text);
+  --color-accent-ink: #ffffff;
+  --color-focus: var(--color-electric-iris-text);
+  --color-warn: var(--color-saffron-spark);
+  --color-alert: var(--color-danger);
 
-  /* Supporting hues — reserved for code syntax colour and status labels,
-     never used as page-level accents. Danger sits apart in hue from the
-     warm accent so error state never reads as "the brand colour". */
-  --color-warn: oklch(80% 0.13 75);
-  --color-alert: oklch(70% 0.16 350);
-  --color-danger: var(--color-alert);
+  /* The one surviving rule token: contact-form inputs only. Everything
+     else on the page floats on black with whitespace alone. */
+  --color-field-rule: color-mix(in oklch, var(--color-bone-white) 22%, transparent);
 
-  /* Accent tints — derived from the token, not inline values. */
-  --color-accent-a08: color-mix(in oklch, var(--color-accent) 8%, transparent);
-  --color-accent-a14: color-mix(in oklch, var(--color-accent) 14%, transparent);
-  --color-accent-a24: color-mix(in oklch, var(--color-accent) 24%, transparent);
-  --color-accent-a40: color-mix(in oklch, var(--color-accent) 40%, transparent);
-
-  --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
-  --font-body: 'Newsreader', 'Source Serif 4', Georgia, serif;
+  --font-display: 'Switzer', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Switzer', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* 4pt spacing scale, named by role. */
-  --space-3xs: 0.25rem;
-  --space-2xs: 0.5rem;
-  --space-xs: 0.75rem;
-  --space-sm: 1rem;
-  --space-md: 1.5rem;
-  --space-lg: 2rem;
-  --space-xl: 3rem;
-  --space-2xl: 4.5rem;
-  --space-3xl: 7rem;
+  /* Type scale — fluid, anchored so the max equals DESIGN.md's stated
+     px. Tracking is -0.04em across every size DESIGN.md lists (113 / 78
+     / 42px all resolve to the same -0.04em), so one token covers the
+     whole display range and survives the clamp. */
+  --tracking-display: -0.04em;
+  --tracking-tight: -0.02em;
+  --tracking-label: 0.025em;
 
-  --shell-max: 1180px;
+  --text-caption: 0.75rem; /* 12px */
+  --text-nav-label: 0.875rem; /* 14px */
+  --text-body: 1.125rem; /* 18px */
+  --text-heading-2xs: 1.5rem; /* 24px */
+  --text-heading-xs: 1.6875rem; /* 27px */
+  --text-subheading: clamp(1.5rem, 2.6vw, 2.25rem); /* 24 -> 36px */
+  --text-heading-sm: clamp(1.875rem, 3.4vw, 2.625rem); /* 30 -> 42px */
+  --text-heading: clamp(2rem, 4vw, 3rem); /* 32 -> 48px */
+  --text-heading-lg: clamp(2.5rem, 6vw, 4.875rem); /* 40 -> 78px */
+  --text-display: clamp(3rem, 8.5vw, 7.0625rem); /* 48 -> 113px */
+
+  /* Weights — 400 carries every heading (never bold: hierarchy is scale
+     + tracking, not weight). 200 is the body signature. 600 is
+     nav/labels. */
+  --font-weight-extralight: 200;
+  --font-weight-regular: 400;
+  --font-weight-semibold: 600;
+
+  /* Spacing — 6px base unit. */
+  --spacing-6: 6px;
+  --spacing-12: 12px;
+  --spacing-18: 18px;
+  --spacing-24: 24px;
+  --spacing-30: 30px;
+  --spacing-36: 36px;
+  --spacing-60: 60px;
+  --spacing-96: 96px;
+  --spacing-120: 120px;
+
+  --shell-max: 1280px;
   --shell-pad: clamp(20px, 5vw, 56px);
-  --section-pad: clamp(72px, 11vh, 132px);
+  --section-pad: clamp(60px, 9vh, 120px);
 
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 10px;
-  --radius-full: 999px;
+  --radius-3xl: 24px;
+  --radius-full: 9999px;
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
@@ -79,10 +106,6 @@
   --dur-micro: 120ms;
   --dur-short: 220ms;
   --dur-long: 420ms;
-
-  --text-display: clamp(2.375rem, 4vw + 1rem, 4.75rem);
-  --text-heading: clamp(1.75rem, 2.4vw + 1rem, 2.5rem);
-  --text-body: 1rem;
 }
 
 *,
@@ -98,18 +121,19 @@ body {
 
 html {
   scroll-behavior: smooth;
-  /* Nav pill height + breathing room, so anchors never land under it. */
-  scroll-padding-top: 96px;
+  /* Nav bar height + breathing room, so anchors never land under it. */
+  scroll-padding-top: 84px;
 }
 
 body {
   margin: 0;
-  background: var(--color-paper);
-  color: var(--color-ink-2);
+  background: var(--color-void);
+  color: var(--color-silver-mist);
   font-family: var(--font-body);
   font-size: var(--text-body);
-  font-weight: 400;
-  line-height: 1.65;
+  font-weight: var(--font-weight-extralight);
+  line-height: 1.5;
+  font-feature-settings: 'ss01' 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -124,14 +148,24 @@ blockquote {
   margin: 0;
 }
 
+/* Links inherit white — violet is a fill color (buttons, logo, accents),
+   never a link color, per DESIGN.md's Don'ts. Amber is for emphasis. */
 a {
-  color: var(--color-accent);
+  color: inherit;
   text-decoration: none;
   transition: color var(--dur-short) var(--ease-out);
 }
 
 a:hover {
-  color: var(--color-accent-bright);
+  color: var(--color-bone-white);
+}
+
+.link--emphasis {
+  color: var(--color-saffron-spark);
+}
+
+.link--emphasis:hover {
+  color: var(--color-bone-white);
 }
 
 img {
@@ -151,7 +185,7 @@ button {
 }
 
 ::selection {
-  background: var(--color-accent);
+  background: var(--color-electric-iris);
   color: var(--color-accent-ink);
 }
 
@@ -173,28 +207,35 @@ button {
 }
 
 .eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.09em;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--text-nav-label);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-ink-3);
+  color: var(--color-saffron-spark);
 }
 
+.eyebrow--muted {
+  color: var(--color-ash-gray);
+}
+
+/* Primary Action Button — filled violet pill, the sole interactive CTA.
+   Reserved for one per view (DESIGN.md Don'ts); demote a second button
+   to .btn--ghost. */
 .btn {
   display: inline-flex;
   align-items: center;
   gap: 0.5em;
   white-space: nowrap;
-  padding: 0.8rem 1.35rem;
   min-height: 44px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
+  border: none;
   font-family: var(--font-display);
-  font-size: 0.9375rem;
-  font-weight: 700;
+  font-size: var(--text-nav-label);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
   transition:
     background-color var(--dur-short) var(--ease-out),
-    border-color var(--dur-short) var(--ease-out),
     color var(--dur-short) var(--ease-out),
     transform 100ms var(--ease-out);
 }
@@ -204,33 +245,34 @@ button {
 }
 
 .btn--solid {
-  background: var(--color-accent);
+  padding: 14.4px 15.96px;
+  background: var(--color-electric-iris);
   color: var(--color-accent-ink);
+  border-radius: var(--radius-3xl);
 }
 
 .btn--solid:hover {
-  background: var(--color-accent-bright);
+  background: var(--color-electric-iris-text);
   color: var(--color-accent-ink);
 }
 
+/* Ghost Text Button — no background, no border; hierarchy comes from
+   weight and tracking alone. */
 .btn--ghost {
-  border-color: var(--color-rule);
-  color: var(--color-ink);
+  padding: 0;
+  min-height: 0;
+  background: none;
+  color: var(--color-bone-white);
 }
 
 .btn--ghost:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
-  background: var(--color-accent-a08);
+  color: var(--color-saffron-spark);
 }
 
 .pill {
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-full);
-  padding: 0.4rem 0.8rem;
   font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--color-ink-2);
+  font-size: var(--text-caption);
+  color: var(--color-silver-mist);
 }
 
 .bullets {
@@ -240,9 +282,12 @@ button {
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 0.9375rem;
+  font-size: var(--text-nav-label);
   line-height: 1.7;
-  color: var(--color-ink-2);
+  /* Bone white, not silver: these bullets are primary content, and
+     DESIGN.md lists bone white for body text (silver mist is reserved for
+     tertiary, caption-level copy). */
+  color: var(--color-ink);
 }
 
 .bullets li {
@@ -252,12 +297,12 @@ button {
 
 .bullets li::before {
   content: '▸';
-  color: var(--color-accent);
+  color: var(--color-saffron-spark);
   flex: none;
 }
 
 .bullets--soft li::before {
-  color: var(--color-ink-3);
+  color: var(--color-ash-gray);
 }
 
 .skip-link {
@@ -266,8 +311,8 @@ button {
   top: -100px;
   z-index: 100;
   padding: 10px 16px;
-  border-radius: var(--radius-sm);
-  background: var(--color-accent);
+  border-radius: var(--radius-3xl);
+  background: var(--color-electric-iris);
   color: var(--color-accent-ink);
   font-size: 12px;
   letter-spacing: 0.08em;

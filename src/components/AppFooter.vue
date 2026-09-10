@@ -17,20 +17,20 @@ import { profile } from '@/data/portfolio'
 <style scoped>
 .footer {
   position: relative;
-  border-top: 1px solid var(--color-rule);
 }
 
 .footer__inner {
-  padding-block: 32px;
+  padding-block: 48px 32px;
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
   justify-content: space-between;
   align-items: center;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.02em;
-  color: var(--color-ink-4);
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-regular);
+  font-size: 0.8125rem;
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-ink-3);
 }
 
 .footer__status {

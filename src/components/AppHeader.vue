@@ -17,32 +17,47 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
-  <div class="nav-wrap">
-    <nav class="nav-pill" aria-label="Primary">
-      <a class="nav-pill__mark" href="#top" aria-label="Andhana Utama — back to top" @click="closeMenu">
-        AU<span class="nav-pill__dot" aria-hidden="true"></span>
+  <!-- Navigation Bar (DESIGN.md): transparent, sitting directly on the void,
+       no border, no backdrop blur — a flat top bar, not a floating pill. -->
+  <header class="nav">
+    <div class="shell nav__inner">
+      <a class="nav__mark" href="#top" aria-label="Andhana Utama — back to top" @click="closeMenu">
+        <!-- Logo Lockup: small triangular violet mark fading to teal. -->
+        <svg class="nav__mark-icon" viewBox="0 0 24 22" aria-hidden="true">
+          <path d="M12 1 L23 21 L1 21 Z" fill="url(#nav-mark-gradient)" />
+          <defs>
+            <linearGradient id="nav-mark-gradient" x1="12" y1="1" x2="12" y2="21" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#8052ff" />
+              <stop offset="1" stop-color="#15846e" />
+            </linearGradient>
+          </defs>
+        </svg>
+        AU
       </a>
 
-      <ul class="nav-pill__links">
+      <ul class="nav__links">
         <li v-for="item in navItems" :key="item.id">
           <a :href="`#${item.id}`">{{ item.label }}</a>
         </li>
       </ul>
 
-      <a class="btn btn--solid nav-pill__cta" href="#contact" @click="closeMenu">Contact</a>
+      <a class="btn btn--solid nav__cta" href="#contact" @click="closeMenu">Contact</a>
 
       <button
         type="button"
-        class="nav-pill__toggle"
+        class="nav__toggle"
         :aria-expanded="menuOpen"
         aria-controls="nav-sheet"
         @click="menuOpen = !menuOpen"
       >
         <span class="sr-only">{{ menuOpen ? 'Close menu' : 'Open menu' }}</span>
-        <span class="nav-pill__toggle-bars" :class="{ 'nav-pill__toggle-bars--open': menuOpen }" aria-hidden="true"></span>
+        <span class="nav__toggle-bars" :class="{ 'nav__toggle-bars--open': menuOpen }" aria-hidden="true"></span>
       </button>
-    </nav>
+    </div>
 
+    <!-- Mobile menu: a floating card would need a border to read against
+         black, so this is a full-screen void overlay instead — no edge
+         required, and it stays true to "the void is the design". -->
     <Transition name="sheet">
       <div v-if="menuOpen" id="nav-sheet" class="nav-sheet">
         <a
@@ -54,89 +69,79 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
         >
           {{ item.label }}
         </a>
-        <a class="nav-sheet__link nav-sheet__link--cta" href="#contact" @click="closeMenu">Contact</a>
+        <a class="btn btn--solid nav-sheet__cta" href="#contact" @click="closeMenu">Contact</a>
       </div>
     </Transition>
-  </div>
+  </header>
 </template>
 
 <style scoped>
-.nav-wrap {
+.nav {
   position: fixed;
   inset: 0 0 auto 0;
   z-index: 40;
-  display: flex;
-  justify-content: center;
-  pointer-events: none;
+  background: transparent;
 }
 
-.nav-pill {
-  pointer-events: auto;
-  margin-top: var(--space-sm);
-  display: inline-flex;
+.nav__inner {
+  display: flex;
   align-items: center;
-  gap: var(--space-md);
-  padding: 0.5rem 0.5rem 0.5rem 1.1rem;
-  background: color-mix(in oklch, var(--color-paper) 80%, transparent);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-full);
-  box-shadow: 0 12px 28px -18px oklch(0% 0 0 / 0.6);
-  max-width: calc(100vw - 2 * var(--shell-pad));
+  gap: var(--spacing-24);
+  padding-block: var(--spacing-18);
 }
 
-.nav-pill__mark {
+.nav__mark {
   display: flex;
-  align-items: baseline;
-  gap: 5px;
+  align-items: center;
+  gap: 8px;
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: var(--font-weight-regular);
   font-size: 1.0625rem;
-  letter-spacing: -0.02em;
-  color: var(--color-ink);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-bone-white);
   white-space: nowrap;
 }
 
-.nav-pill__mark:hover {
-  color: var(--color-ink);
+.nav__mark:hover {
+  color: var(--color-bone-white);
 }
 
-.nav-pill__dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  margin-bottom: 3px;
+.nav__mark-icon {
+  width: 20px;
+  height: 19px;
+  flex: none;
 }
 
-.nav-pill__links {
+.nav__links {
   display: none;
   align-items: center;
-  gap: var(--space-md);
-  margin: 0;
+  gap: var(--spacing-30);
+  margin: 0 0 0 auto;
   padding: 0;
   list-style: none;
-  font-size: 0.875rem;
-  color: var(--color-ink-2);
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--text-nav-label);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
 }
 
-.nav-pill__links a {
-  color: var(--color-ink-2);
+.nav__links a {
+  color: var(--color-ash-gray);
   white-space: nowrap;
 }
 
-.nav-pill__links a:hover {
-  color: var(--color-ink);
+.nav__links a:hover {
+  color: var(--color-bone-white);
 }
 
-.nav-pill__cta {
-  padding: 0.55rem 1.1rem;
-  min-height: 0;
-  font-size: 0.8125rem;
+.nav__cta {
+  display: none;
+  margin-left: var(--spacing-18);
 }
 
-.nav-pill__toggle {
+.nav__toggle {
+  margin-left: auto;
   display: grid;
   place-items: center;
   width: 36px;
@@ -146,100 +151,98 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   border-radius: var(--radius-full);
 }
 
-.nav-pill__toggle-bars,
-.nav-pill__toggle-bars::before,
-.nav-pill__toggle-bars::after {
+.nav__toggle-bars,
+.nav__toggle-bars::before,
+.nav__toggle-bars::after {
   width: 16px;
   height: 1.5px;
-  background: var(--color-ink);
+  background: var(--color-bone-white);
   transition: transform var(--dur-short) var(--ease-out), opacity var(--dur-short) var(--ease-out);
 }
 
-.nav-pill__toggle-bars {
+.nav__toggle-bars {
   position: relative;
   display: block;
 }
 
-.nav-pill__toggle-bars::before,
-.nav-pill__toggle-bars::after {
+.nav__toggle-bars::before,
+.nav__toggle-bars::after {
   content: '';
   position: absolute;
   left: 0;
 }
 
-.nav-pill__toggle-bars::before {
+.nav__toggle-bars::before {
   top: -5px;
 }
 
-.nav-pill__toggle-bars::after {
+.nav__toggle-bars::after {
   top: 5px;
 }
 
-.nav-pill__toggle-bars--open {
+.nav__toggle-bars--open {
   background: transparent;
 }
 
-.nav-pill__toggle-bars--open::before {
+.nav__toggle-bars--open::before {
   top: 0;
   transform: rotate(45deg);
 }
 
-.nav-pill__toggle-bars--open::after {
+.nav__toggle-bars--open::after {
   top: 0;
   transform: rotate(-45deg);
 }
 
 .nav-sheet {
-  pointer-events: auto;
   position: fixed;
-  top: calc(var(--space-sm) + 58px);
-  left: 50%;
-  transform: translateX(-50%);
+  inset: 0;
   z-index: 39;
+  background: var(--color-void);
   display: flex;
   flex-direction: column;
-  min-width: 200px;
-  padding: var(--space-xs);
-  background: var(--color-paper-2);
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 16px 36px -18px oklch(0% 0 0 / 0.6);
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--spacing-24);
+  padding: var(--shell-pad);
 }
 
 .nav-sheet__link {
-  padding: 0.65rem 0.75rem;
-  border-radius: var(--radius-sm);
-  color: var(--color-ink-2);
-  font-size: 0.9375rem;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-regular);
+  font-size: var(--text-heading-sm);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-bone-white);
 }
 
 .nav-sheet__link:hover {
-  color: var(--color-ink);
-  background: var(--color-paper-3);
+  color: var(--color-saffron-spark);
 }
 
-.nav-sheet__link--cta {
-  margin-top: var(--space-3xs);
-  color: var(--color-accent);
+.nav-sheet__cta {
+  margin-top: var(--spacing-12);
 }
 
 .sheet-enter-active,
 .sheet-leave-active {
-  transition: opacity var(--dur-short) var(--ease-out), transform var(--dur-short) var(--ease-out);
+  transition: opacity var(--dur-short) var(--ease-out);
 }
 
 .sheet-enter-from,
 .sheet-leave-to {
   opacity: 0;
-  transform: translate(-50%, -6px);
 }
 
 @media (min-width: 60rem) {
-  .nav-pill__links {
+  .nav__links {
     display: flex;
   }
 
-  .nav-pill__toggle {
+  .nav__cta {
+    display: inline-flex;
+  }
+
+  .nav__toggle {
     display: none;
   }
 

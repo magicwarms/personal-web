@@ -94,7 +94,9 @@ async function onSubmit() {
           </li>
         </ul>
 
-        <a class="btn btn--solid contact__cv" :href="profile.cv" download>Download CV (PDF)</a>
+        <!-- Ghost, not solid: "Send message" below is this view's one
+             filled violet pill (DESIGN.md Don'ts). -->
+        <a class="btn btn--ghost contact__cv" :href="profile.cv" download>Download CV (PDF)</a>
       </RevealItem>
 
       <RevealItem :delay="0.08">
@@ -140,7 +142,7 @@ async function onSubmit() {
             </label>
           </div>
 
-          <button type="submit" class="contact__submit" :disabled="state === 'submitting'">
+          <button type="submit" class="btn btn--solid contact__submit" :disabled="state === 'submitting'">
             {{ state === 'submitting' ? 'Sending…' : 'Send message' }}
           </button>
 
@@ -177,8 +179,9 @@ async function onSubmit() {
 
 .contact__intro {
   color: var(--color-ink-2);
-  font-size: 1.0625rem;
-  line-height: 1.7;
+  font-weight: var(--font-weight-extralight);
+  font-size: var(--text-body);
+  line-height: 1.6;
   max-width: 42ch;
 }
 
@@ -188,29 +191,21 @@ async function onSubmit() {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  background: var(--color-rule);
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
+  gap: var(--spacing-18);
 }
 
 .contact__link {
-  background: var(--color-paper-2);
-  padding: 18px 20px;
+  padding: 0;
   display: flex;
   justify-content: space-between;
   gap: 16px;
   align-items: center;
   color: var(--color-ink);
-  transition:
-    background-color var(--dur-short) var(--ease-out),
-    color var(--dur-short) var(--ease-out);
+  transition: color var(--dur-short) var(--ease-out);
 }
 
 .contact__link:hover {
-  background: var(--color-paper-3);
-  color: var(--color-accent);
+  color: var(--color-accent-bright);
 }
 
 .contact__value {
@@ -219,17 +214,13 @@ async function onSubmit() {
 }
 
 .contact__cv {
-  margin-top: 24px;
+  margin-top: 30px;
 }
 
 .contact__form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-lg);
-  padding: clamp(20px, 3vw, 32px);
-  background: var(--color-paper-2);
+  gap: var(--spacing-24);
 }
 
 .contact__field {
@@ -238,12 +229,16 @@ async function onSubmit() {
   gap: 8px;
 }
 
+/* The one surviving rule in the whole page: a bottom-only hairline on
+   form inputs, so field boundaries stay legible. Everything else on the
+   site floats on black with whitespace alone. */
 .contact__field input,
 .contact__field textarea {
-  background: var(--color-paper-3);
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--color-field-rule);
+  border-radius: 0;
+  padding: 10px 2px;
   color: var(--color-ink);
   font-size: 0.9375rem;
   outline: none;
@@ -256,31 +251,17 @@ async function onSubmit() {
 
 .contact__field input:focus,
 .contact__field textarea:focus {
-  border-color: var(--color-accent);
+  border-color: var(--color-electric-iris);
 }
 
 .contact__field input::placeholder,
 .contact__field textarea::placeholder {
-  color: var(--color-ink-4);
+  color: var(--color-ink-3);
 }
 
 .contact__submit {
-  background: transparent;
-  border: 1px solid var(--color-rule);
-  border-radius: var(--radius-sm);
-  color: var(--color-ink);
-  padding: 13px 22px;
-  min-height: 44px;
-  font-family: var(--font-display);
-  font-size: 0.875rem;
-  font-weight: 700;
-  transition: background-color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out);
-}
-
-.contact__submit:hover:not(:disabled) {
-  border-color: var(--color-accent);
-  background: var(--color-accent-a08);
-  color: var(--color-accent);
+  margin-top: 6px;
+  align-self: flex-start;
 }
 
 .contact__submit:disabled {
@@ -303,12 +284,12 @@ async function onSubmit() {
 .contact__status {
   font-size: 0.8125rem;
   line-height: 1.7;
-  color: var(--color-ink-4);
+  color: var(--color-ink-3);
   transition: color var(--dur-short) var(--ease-out);
 }
 
 .contact__status--success {
-  color: var(--color-accent);
+  color: var(--color-accent-bright);
 }
 
 .contact__status--error {
