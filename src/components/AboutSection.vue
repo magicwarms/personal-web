@@ -8,7 +8,7 @@ import { profile, workDetails } from '@/data/portfolio'
   <section id="about" class="section" aria-labelledby="about-heading">
     <SectionHeading id="about-heading" index="03" title="About" />
 
-    <div class="about">
+    <div class="about paper-fill">
       <RevealItem class="about__intro">
         <img
           class="about__photo"

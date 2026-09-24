@@ -60,7 +60,7 @@ function onLeave(element: Element, done: () => void) {
   <section id="experience" class="section" aria-labelledby="experience-heading">
     <SectionHeading id="experience-heading" index="02" title="Experience" />
 
-    <div>
+    <div class="paper-fill">
       <!-- Scope lines, not achievements: the numbers live in Selected work,
            so this list answers "what was the job" without repeating them. -->
       <ol class="roles">

@@ -8,7 +8,7 @@ import { certifications, education } from '@/data/portfolio'
   <section id="credentials" class="section" aria-labelledby="credentials-heading">
     <SectionHeading id="credentials-heading" index="05" title="Credentials" />
 
-    <div class="credentials">
+    <div class="credentials paper-fill">
       <RevealItem>
         <h3 class="credentials__label mono">Education</h3>
         <div class="spec">

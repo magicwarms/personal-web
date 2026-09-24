@@ -5,7 +5,7 @@ import { proof } from '@/data/portfolio'
 <template>
   <!-- A ruled table, not cards: each number carries its source underneath so
        a recruiter can see where it came from without opening the CV. -->
-  <dl class="proof">
+  <dl class="proof paper-fill">
     <div v-for="(point, position) in proof" :key="point.id" class="proof__cell rise" :style="{ '--i': position + 6 }">
       <dt class="proof__label">{{ point.label }}</dt>
       <dd class="proof__value">{{ point.value }}</dd>

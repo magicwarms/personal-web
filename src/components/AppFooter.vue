@@ -4,7 +4,7 @@ import { profile } from '@/data/portfolio'
 
 <template>
   <footer class="footer">
-    <div class="shell footer__inner">
+    <div class="shell footer__inner paper-fill">
       <p class="footer__who">
         <span class="status-dot" aria-hidden="true"></span>
         {{ profile.name }} · {{ profile.location }} · {{ profile.availability }}

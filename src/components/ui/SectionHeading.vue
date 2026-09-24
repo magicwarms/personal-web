@@ -12,7 +12,7 @@ defineProps<{
   <!-- The page's connective motif: a numbered margin label, like the
        sections of a design doc. It stays in view while its section scrolls
        past on wide screens, so the reader always knows where they are. -->
-  <div class="heading">
+  <div class="heading paper-fill">
     <span class="heading__index mono" aria-hidden="true">{{ index }}</span>
     <h2 :id="id" class="heading__title">{{ title }}</h2>
   </div>
@@ -20,6 +20,7 @@ defineProps<{
 
 <style scoped>
 .heading {
+  width: fit-content;
   display: flex;
   flex-direction: column;
   gap: 6px;

@@ -10,7 +10,7 @@ import { profile } from '@/data/portfolio'
        a short CSS stagger (.rise); nothing is pinned or scrubbed. -->
   <section class="hero" aria-labelledby="hero-title">
     <div class="hero__grid">
-      <div class="hero__copy">
+      <div class="hero__copy paper-fill">
         <p class="hero__status rise" :style="{ '--i': 0 }">
           <span class="status-dot" aria-hidden="true"></span>
           <span>

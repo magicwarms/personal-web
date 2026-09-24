@@ -76,7 +76,7 @@ async function onSubmit() {
   <section id="contact" class="section" aria-labelledby="contact-heading">
     <SectionHeading id="contact-heading" index="06" title="Contact" />
 
-    <div class="contact">
+    <div class="contact paper-fill">
       <RevealItem class="contact__info">
         <p class="contact__heading">{{ contact.heading }}</p>
         <p class="contact__intro">{{ contact.intro }}</p>

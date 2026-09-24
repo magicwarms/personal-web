@@ -287,6 +287,13 @@ button {
   }
 }
 
+/* Keeps text off the signal field. The spread shadow bleeds the paper 12px
+   past the box without moving layout; it is a fill, not a visible shadow. */
+.paper-fill {
+  background: var(--color-paper);
+  box-shadow: 0 0 0 12px var(--color-paper);
+}
+
 /* Key/value rows with hairlines: working details, skills, credentials. */
 .spec {
   display: grid;

@@ -8,7 +8,7 @@ import { earlierProjects, projects } from '@/data/portfolio'
   <section id="work" class="section" aria-labelledby="work-heading">
     <SectionHeading id="work-heading" index="01" title="Selected work" />
 
-    <div class="work">
+    <div class="work paper-fill">
       <!-- The most recent, most senior project leads on a raised surface;
            the rest are denser rows. Hierarchy follows recency and scope. -->
       <RevealItem

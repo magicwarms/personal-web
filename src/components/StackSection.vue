@@ -10,13 +10,15 @@ import { stackGroups } from '@/data/portfolio'
 
     <!-- Plain text in a spec table, so a recruiter can scan for keywords
          and a search can find them. -->
-    <RevealItem>
-      <dl class="spec">
-        <div v-for="group in stackGroups" :key="group.id" class="spec__row">
-          <dt class="spec__key">{{ group.label }}</dt>
-          <dd class="spec__value">{{ group.items.join(', ') }}</dd>
-        </div>
-      </dl>
-    </RevealItem>
+    <div class="paper-fill">
+      <RevealItem>
+        <dl class="spec">
+          <div v-for="group in stackGroups" :key="group.id" class="spec__row">
+            <dt class="spec__key">{{ group.label }}</dt>
+            <dd class="spec__value">{{ group.items.join(', ') }}</dd>
+          </div>
+        </dl>
+      </RevealItem>
+    </div>
   </section>
 </template>
