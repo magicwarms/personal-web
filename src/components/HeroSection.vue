@@ -2,13 +2,32 @@
 import ProofStrip from './ProofStrip.vue'
 import SystemDiagram from './ui/SystemDiagram.vue'
 import { profile } from '@/data/portfolio'
+import { ref } from 'vue'
+import { gsap } from '@/motion/gsap'
+import { useSectionMotion } from '@/composables/useSectionMotion'
+
+const root = ref<HTMLElement | null>(null)
+
+// Desktop depth: the diagram drifts up to 40px slower than the copy while
+// the hero scrolls out. 40px with the grid as trigger keeps it inside the
+// grid's bottom margin (at least 40px on desktop), so it never slides over
+// the proof strip while visible.
+useSectionMotion(root, ({ isDesktop, reduceMotion }) => {
+  if (!isDesktop || reduceMotion) return
+  gsap.to('.hero__depth', {
+    y: 40,
+    ease: 'none',
+    scrollTrigger: { trigger: '.hero__grid', start: 'top top', end: 'bottom top', scrub: true },
+  })
+})
 </script>
 
 <template>
   <!-- Answers a recruiter's first three questions in one screen: who, whether
        he is available, and what he has actually built. The load sequence is
-       a short CSS stagger (.rise); nothing is pinned or scrubbed. -->
-  <section class="hero" aria-labelledby="hero-title">
+       a short CSS stagger (.rise); on desktop the diagram scrubs slightly
+       slower than the copy as the hero scrolls out. -->
+  <section ref="root" class="hero" aria-labelledby="hero-title">
     <div class="hero__grid">
       <div class="hero__copy paper-fill">
         <p class="hero__status rise" :style="{ '--i': 0 }">
@@ -36,7 +55,9 @@ import { profile } from '@/data/portfolio'
       </div>
 
       <div class="hero__visual rise" :style="{ '--i': 3 }">
-        <SystemDiagram />
+        <div class="hero__depth">
+          <SystemDiagram />
+        </div>
       </div>
     </div>
 
@@ -123,6 +144,11 @@ import { profile } from '@/data/portfolio'
 .hero__visual {
   display: flex;
   justify-content: center;
+}
+
+.hero__depth {
+  width: 100%;
+  max-width: 420px;
 }
 
 @media (min-width: 60rem) {
