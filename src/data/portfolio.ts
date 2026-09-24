@@ -139,8 +139,23 @@ export const projects: Project[] = [
     featured: true,
   },
   {
-    id: "treedots",
+    id: "thegamechangers",
     index: "02",
+    org: "The Game Changers",
+    period: "2026",
+    role: "Sole developer",
+    title: "A bilingual website for an experiential learning company",
+    summary:
+      "I built thegamechangers.id on my own, from design to launch. The Game Changers is an experiential learning company in Batam that runs Amazing Race, team building, and cultural experiences.",
+    did: [
+      "Design, build, and launch of the whole site",
+      "English and Indonesian versions with a language switcher",
+      "An animated dot background drawn on a canvas, with a still version for visitors who set their device to reduce motion",
+    ],
+  },
+  {
+    id: "treedots",
+    index: "03",
     org: "TreeDots",
     period: "2022-2024",
     role: "Senior Backend Engineer, remote (Singapore)",
@@ -160,7 +175,7 @@ export const projects: Project[] = [
   },
   {
     id: "brainpooltech",
-    index: "03",
+    index: "04",
     org: "BrainPoolTech",
     period: "2020-2022",
     role: "Backend Engineer, remote (Singapore)",
@@ -175,7 +190,7 @@ export const projects: Project[] = [
   },
   {
     id: "cudy",
-    index: "04",
+    index: "05",
     org: "Cudy",
     period: "2019-2020",
     role: "Backend Engineer",
