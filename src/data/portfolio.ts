@@ -81,7 +81,7 @@ export const profile = {
   title: "Senior Backend Engineer and Technical Lead",
   location: "Batam, Indonesia",
   timezone: "GMT+7",
-  email: "andhanautama[at]gmail.com",
+  email: "andhanautama@gmail.com",
   github: "https://github.com/magicwarms",
   linkedin: "https://linkedin.com/in/andhana-utama-4a2b1a130",
   cv: "/assets/CV-Andhana-Utama-2026.pdf",
