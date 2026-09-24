@@ -14,7 +14,8 @@
     "prerender": "vite build --ssr src/entry-server.ts --outDir dist-ssr && node scripts/prerender.mjs",
     "preview": "vite preview",
     "start": "node --env-file-if-exists=.env dist-server/index.js",
-    "typecheck": "vue-tsc --noEmit && tsc -p tsconfig.server.json --noEmit"
+    "typecheck": "vue-tsc --noEmit && tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.test.json --noEmit",
+    "test": "node --import tsx --test \"src/**/*.test.ts\""
   },
   "dependencies": {
     "compression": "^1.8.1",

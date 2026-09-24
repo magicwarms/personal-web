@@ -41,6 +41,9 @@ jobs:
 
       - run: npm ci
 
+      # Unit tests for the pure motion and diagram logic (node:test via tsx).
+      - run: npm test
+
       # Fails fast with readable output: this script chains vue-tsc --noEmit,
       # vite build, and the server tsc build. Needs no secrets - nothing in src/
       # reads import.meta.env, so no credential is ever baked into the bundle.
