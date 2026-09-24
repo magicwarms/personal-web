@@ -1,62 +1,64 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { ariaLabelFor, captionFor, edges, litFor, nodes } from '@/data/diagram'
+import { reduceActive } from '@/composables/diagramActive'
+import type { ActiveAction } from '@/composables/diagramActive'
 
 /**
- * The Kirimfresh.id backend, simplified, as the hero visual. Every node is a
- * component the CV names; nothing here is decorative invention.
+ * The Kirimfresh.id backend, simplified, as the hero visual. The graph lives
+ * in src/data/diagram.ts.
  *
- * Motion has one job: show traffic moving through an event-driven system,
- * which is the work itself. Edges draw in once, then a pulse travels each
- * edge in request order (callers, then the API's dependencies, then the
- * push notification). All of it is CSS, so `prefers-reduced-motion` in
- * base.css collapses it to the finished, static drawing.
+ * Idle, motion has one job: show traffic moving through an event-driven
+ * system. Edges draw in once, then a pulse travels each edge in request
+ * order, all in CSS, so `prefers-reduced-motion` in base.css collapses it to
+ * the finished drawing. Hover, keyboard focus, or a tap on a node lights it
+ * and its neighbors and puts the node's note in the caption.
  */
-
-interface DiagramNode {
-  id: string
-  x: number
-  y: number
-  w: number
-  h: number
-  label: string
-  sub?: string
-  /** 0 = callers, 1 = API dependencies, 2 = downstream of the queue. */
-  phase: number
-}
-
-interface DiagramEdge {
-  id: string
-  d: string
-  phase: number
-}
-
-const nodes: DiagramNode[] = [
-  { id: 'customers', x: 16, y: 16, w: 140, h: 36, label: 'Customers', phase: 0 },
-  { id: 'assistant', x: 184, y: 16, w: 140, h: 36, label: 'AI assistant', phase: 0 },
-  { id: 'api', x: 80, y: 92, w: 180, h: 48, label: 'API', sub: 'Go · Fiber', phase: 0 },
-  { id: 'postgres', x: 16, y: 184, w: 94, h: 36, label: 'PostgreSQL', phase: 1 },
-  { id: 'redis', x: 16, y: 240, w: 94, h: 36, label: 'Redis', phase: 1 },
-  { id: 'meilisearch', x: 16, y: 296, w: 94, h: 36, label: 'Meilisearch', phase: 1 },
-  { id: 'payments', x: 230, y: 184, w: 94, h: 36, label: 'Payments', phase: 1 },
-  { id: 'rabbitmq', x: 230, y: 240, w: 94, h: 36, label: 'RabbitMQ', phase: 1 },
-  { id: 'fcm', x: 230, y: 304, w: 94, h: 36, label: 'Firebase FCM', phase: 2 },
-]
-
-/** Orthogonal routes, drawn from caller to callee so pulses flow forward. */
-const edges: DiagramEdge[] = [
-  { id: 'customers-api', d: 'M86 52 V72 H150 V92', phase: 0 },
-  { id: 'assistant-api', d: 'M254 52 V72 H190 V92', phase: 0 },
-  { id: 'api-postgres', d: 'M130 140 V202 H110', phase: 1 },
-  { id: 'api-redis', d: 'M130 140 V258 H110', phase: 1 },
-  { id: 'api-meilisearch', d: 'M130 140 V314 H110', phase: 1 },
-  { id: 'api-payments', d: 'M210 140 V202 H230', phase: 1 },
-  { id: 'api-rabbitmq', d: 'M210 140 V258 H230', phase: 1 },
-  { id: 'rabbitmq-fcm', d: 'M277 276 V304', phase: 2 },
-]
+const DEFAULT_CAPTION =
+  'Kirimfresh.id backend, simplified. RabbitMQ carries order events, delivery tracking, and notifications.'
 
 const root = ref<HTMLElement | null>(null)
 const paused = ref(false)
+const activeId = ref<string | null>(null)
 let observer: IntersectionObserver | undefined
+
+/**
+ * Written on pointerdown and consumed by the click that follows. A mouse
+ * click comes after a hover that already lit the node; anything else (touch,
+ * pen, or an assistive-technology click with no pointerdown) is a tap.
+ */
+let lastPointer = ''
+
+const lit = computed(() => (activeId.value ? litFor(activeId.value) : null))
+const caption = computed(() => (activeId.value ? captionFor(activeId.value) : DEFAULT_CAPTION))
+
+function dispatch(action: ActiveAction) {
+  activeId.value = reduceActive(activeId.value, action)
+}
+
+const isNodeDim = (id: string) => lit.value !== null && !lit.value.nodes.has(id)
+const isEdgeDim = (id: string) => lit.value !== null && !lit.value.edges.has(id)
+
+function onPointerEnter(event: PointerEvent, id: string) {
+  if (event.pointerType === 'mouse') dispatch({ type: 'hover', id })
+}
+
+function onPointerLeave(event: PointerEvent, id: string) {
+  if (event.pointerType === 'mouse') dispatch({ type: 'unhover', id })
+}
+
+function onPointerDown(event: PointerEvent) {
+  lastPointer = event.pointerType
+}
+
+function onNodeClick(id: string) {
+  if (lastPointer !== 'mouse') dispatch({ type: 'tap', id })
+  lastPointer = ''
+}
+
+function onFocus(event: FocusEvent, id: string) {
+  dispatch({ type: 'focus', id, keyboard: (event.target as Element).matches(':focus-visible') })
+}
 
 // A looping animation nobody can see is wasted work; stop it offscreen.
 onMounted(() => {
@@ -71,12 +73,19 @@ onBeforeUnmount(() => observer?.disconnect())
 </script>
 
 <template>
-  <figure ref="root" class="diagram" :class="{ 'diagram--paused': paused }">
+  <figure
+    ref="root"
+    class="diagram"
+    :class="{ 'diagram--paused': paused }"
+    @keydown.esc="dispatch({ type: 'clear' })"
+  >
     <svg
       class="diagram__svg"
       viewBox="0 0 340 356"
-      role="img"
-      aria-labelledby="diagram-title diagram-desc"
+      role="group"
+      aria-labelledby="diagram-title"
+      aria-describedby="diagram-desc"
+      @click="dispatch({ type: 'clear' })"
     >
       <title id="diagram-title">Kirimfresh.id backend architecture, simplified</title>
       <desc id="diagram-desc">
@@ -90,6 +99,7 @@ onBeforeUnmount(() => observer?.disconnect())
           v-for="edge in edges"
           :key="edge.id"
           class="diagram__edge"
+          :class="{ 'diagram__edge--dim': isEdgeDim(edge.id) }"
           :d="edge.d"
           pathLength="100"
           :style="{ '--phase': edge.phase }"
@@ -101,6 +111,7 @@ onBeforeUnmount(() => observer?.disconnect())
           v-for="edge in edges"
           :key="edge.id"
           class="diagram__pulse"
+          :class="{ 'diagram__pulse--off': isEdgeDim(edge.id) }"
           :d="edge.d"
           pathLength="100"
           :style="{ '--phase': edge.phase }"
@@ -111,10 +122,29 @@ onBeforeUnmount(() => observer?.disconnect())
         v-for="node in nodes"
         :key="node.id"
         class="diagram__node"
-        :class="{ 'diagram__node--core': node.id === 'api' }"
+        :class="{
+          'diagram__node--core': node.id === 'api',
+          'diagram__node--active': activeId === node.id,
+          'diagram__node--dim': isNodeDim(node.id),
+        }"
         :style="{ '--phase': node.phase }"
+        role="button"
+        tabindex="0"
+        :aria-label="ariaLabelFor(node.id)"
+        :aria-pressed="activeId === node.id"
+        @pointerenter="onPointerEnter($event, node.id)"
+        @pointerleave="onPointerLeave($event, node.id)"
+        @pointerdown="onPointerDown"
+        @click.stop="onNodeClick(node.id)"
+        @focus="onFocus($event, node.id)"
+        @blur="dispatch({ type: 'blur', id: node.id })"
+        @keydown.enter.prevent="dispatch({ type: 'press', id: node.id })"
+        @keydown.space.prevent="dispatch({ type: 'press', id: node.id })"
       >
-        <rect :x="node.x" :y="node.y" :width="node.w" :height="node.h" rx="5" />
+        <!-- Invisible 4px bleed, so a node stays at least 36px tall to a
+             finger at the diagram's 375px-viewport size. -->
+        <rect class="diagram__hit" :x="node.x - 4" :y="node.y - 4" :width="node.w + 8" :height="node.h + 8" />
+        <rect class="diagram__box" :x="node.x" :y="node.y" :width="node.w" :height="node.h" rx="5" />
         <template v-if="node.sub">
           <text :x="node.x + node.w / 2" :y="node.y + 20" class="diagram__label">{{ node.label }}</text>
           <text :x="node.x + node.w / 2" :y="node.y + 36" class="diagram__sub">{{ node.sub }}</text>
@@ -125,9 +155,7 @@ onBeforeUnmount(() => observer?.disconnect())
       </g>
     </svg>
 
-    <figcaption class="diagram__caption mono">
-      Kirimfresh.id backend, simplified. RabbitMQ carries order events, delivery tracking, and notifications.
-    </figcaption>
+    <figcaption class="diagram__caption mono" aria-live="polite">{{ caption }}</figcaption>
   </figure>
 </template>
 
@@ -176,18 +204,62 @@ onBeforeUnmount(() => observer?.disconnect())
   animation-play-state: paused;
 }
 
+.diagram__edge,
+.diagram__pulse,
+.diagram__box,
+.diagram__label,
+.diagram__sub {
+  transition: opacity var(--dur-short) var(--ease-out);
+}
+
+/* Dimming goes on the children: the node <g> holds the diagram-fade
+   animation with fill-mode both, which would fight an opacity set on it. */
+.diagram__edge--dim,
+.diagram__node--dim .diagram__box,
+.diagram__node--dim .diagram__label,
+.diagram__node--dim .diagram__sub {
+  opacity: 0.35;
+}
+
+.diagram__pulse--off {
+  opacity: 0;
+}
+
+.diagram__node {
+  cursor: pointer;
+}
+
+.diagram__hit {
+  fill: transparent;
+  stroke: none;
+}
+
+/* The global outline does not follow an SVG group's shape; the box stroke does. */
+.diagram__node:focus-visible {
+  outline: none;
+}
+
+.diagram__node:focus-visible .diagram__box {
+  stroke: var(--color-ink);
+  stroke-width: 2;
+}
+
+.diagram__node--active .diagram__box {
+  stroke: var(--color-accent);
+}
+
 .diagram__node {
   animation: diagram-fade 0.5s var(--ease-out) both;
   animation-delay: calc(var(--phase) * 150ms);
 }
 
-.diagram__node rect {
+.diagram__box {
   fill: var(--color-surface);
   stroke: var(--color-rule-strong);
   stroke-width: 1;
 }
 
-.diagram__node--core rect {
+.diagram__node--core .diagram__box {
   stroke: var(--color-ink);
   stroke-width: 1.5;
 }
