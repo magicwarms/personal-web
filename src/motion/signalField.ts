@@ -82,3 +82,194 @@ export function alphaLevel(value: number): number {
 export function isHighlight(i: number, j: number): boolean {
   return Math.abs(Math.sin(i * 12.34) * Math.cos(j * 56.78)) > 0.98
 }
+
+export interface SignalFieldColors {
+  dot: string
+  accent: string
+}
+
+/** The light-theme values of --color-ink-3 and --color-accent in base.css. */
+export const FALLBACK_COLORS: SignalFieldColors = { dot: '#666666', accent: '#1a7f37' }
+
+/** An empty custom property must never turn into invisible dots. */
+export function resolveColors(read: (name: string) => string): SignalFieldColors {
+  return {
+    dot: read('--color-ink-3').trim() || FALLBACK_COLORS.dot,
+    accent: read('--color-accent').trim() || FALLBACK_COLORS.accent,
+  }
+}
+
+/** 16 px from the 60rem breakpoint up, 20 px below it: fewer dots where CPUs are weaker. */
+export function spacingFor(width: number): number {
+  return width >= 960 ? 16 : 20
+}
+
+export interface Size {
+  width: number
+  height: number
+}
+
+/**
+ * Mobile browsers change the viewport height as their toolbar slides in and
+ * out. Resizing the backing store clears it, so only rebuild when the width
+ * changes or the height grows past what the grid already covers.
+ */
+export function shouldResize(prev: Size, next: Size): boolean {
+  return next.width !== prev.width || next.height > prev.height
+}
+
+export interface SignalFieldOptions {
+  colors: SignalFieldColors
+  /** Returns window.scrollY. Read once per frame; no scroll listener. */
+  getScroll: () => number
+  /** Called once, after the first frame is on the canvas (the fade-in hook). */
+  onFirstFrame?: () => void
+}
+
+export interface SignalField {
+  start(): void
+  stop(): void
+  /** One frame at t = 0 and no scroll offset: the reduced-motion field. */
+  drawOnce(): void
+  resize(): void
+  setColors(colors: SignalFieldColors): void
+  destroy(): void
+}
+
+const DOT_RADIUS = 1.5
+const TAU = Math.PI * 2
+/** The bands move at this fraction of scroll speed: the page's parallax. */
+const SCROLL_FACTOR = 0.3
+/** The reference advances t by 0.02 per frame at 60 fps, 1.2 per second. */
+const TIME_SCALE = 1.2
+/** About 30 fps, with slack so rAF jitter on a 60 Hz display does not drop it to 20. */
+const MIN_FRAME_GAP_MS = 29
+const HIGHLIGHT_ALPHA = 0.9
+
+export function createSignalField(canvas: HTMLCanvasElement, options: SignalFieldOptions): SignalField | null {
+  const context = canvas.getContext('2d')
+  if (!context) return null
+  // Re-bound with an explicit type: narrowing from the null check does not
+  // carry into the closures below.
+  const ctx: CanvasRenderingContext2D = context
+
+  let colors = options.colors
+  let size: Size = { width: 0, height: 0 }
+  let spacing = 16
+  let cols = 0
+  let rows = 0
+  /** isHighlight per dot, computed once per grid instead of twice per dot per frame. */
+  let highlights = new Uint8Array(0)
+  let running = false
+  let raf = 0
+  let startedAt = 0
+  let lastDrawAt = -Infinity
+  let lastT = 0
+  let lastScroll = 0
+  let firstFrameDone = false
+
+  function rebuild(next: Size) {
+    size = next
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    canvas.width = Math.round(next.width * dpr)
+    canvas.height = Math.round(next.height * dpr)
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+
+    spacing = spacingFor(next.width)
+    cols = Math.floor(next.width / spacing)
+    rows = Math.floor(next.height / spacing)
+    highlights = new Uint8Array((cols + 1) * (rows + 1))
+    for (let i = 0; i <= cols; i++) {
+      for (let j = 0; j <= rows; j++) {
+        highlights[i * (rows + 1) + j] = isHighlight(i, j) ? 1 : 0
+      }
+    }
+  }
+
+  function paint(t: number, scroll: number) {
+    lastT = t
+    lastScroll = scroll
+    const { width, height } = size
+    ctx.clearRect(0, 0, width, height)
+
+    const offsetX = (width - cols * spacing) / 2
+    const offsetY = (height - rows * spacing) / 2
+    const terms = buildAxisTerms(cols, rows, t, (scroll * SCROLL_FACTOR) / spacing)
+    const levels = Array.from({ length: LEVELS }, () => new Path2D())
+    const accent = new Path2D()
+
+    for (let i = 0; i <= cols; i++) {
+      const x = offsetX + i * spacing
+      for (let j = 0; j <= rows; j++) {
+        const level = alphaLevel(valueAt(terms, i, j))
+        if (level === 0) continue
+        const y = offsetY + j * spacing
+        const path = highlights[i * (rows + 1) + j] ? accent : levels[level - 1]
+        // moveTo first, or each arc would be joined to the previous one by a line.
+        path.moveTo(x + DOT_RADIUS, y)
+        path.arc(x, y, DOT_RADIUS, 0, TAU)
+      }
+    }
+
+    // One fill per alpha level instead of a fillStyle change per dot.
+    ctx.fillStyle = colors.dot
+    levels.forEach((path, index) => {
+      ctx.globalAlpha = (index + 1) / 10
+      ctx.fill(path)
+    })
+    ctx.globalAlpha = HIGHLIGHT_ALPHA
+    ctx.fillStyle = colors.accent
+    ctx.fill(accent)
+    ctx.globalAlpha = 1
+
+    if (!firstFrameDone) {
+      firstFrameDone = true
+      options.onFirstFrame?.()
+    }
+  }
+
+  function frame(now: number) {
+    raf = requestAnimationFrame(frame)
+    if (now - lastDrawAt < MIN_FRAME_GAP_MS) return
+    lastDrawAt = now
+    paint(((now - startedAt) / 1000) * TIME_SCALE, options.getScroll())
+  }
+
+  function measure(): Size {
+    return { width: canvas.clientWidth, height: canvas.clientHeight }
+  }
+
+  function stop() {
+    running = false
+    cancelAnimationFrame(raf)
+  }
+
+  rebuild(measure())
+
+  return {
+    start() {
+      if (running) return
+      running = true
+      // Resume from the last frame's time, so a tab coming back does not jump the bands.
+      startedAt = performance.now() - (lastT / TIME_SCALE) * 1000
+      raf = requestAnimationFrame(frame)
+    },
+    stop,
+    drawOnce() {
+      paint(0, 0)
+    },
+    resize() {
+      const next = measure()
+      if (!shouldResize(size, next)) return
+      rebuild(next)
+      // Resizing cleared the canvas. A running loop repaints on its next frame;
+      // a stopped one (reduced motion, hidden tab) has to repaint now.
+      if (!running && firstFrameDone) paint(lastT, lastScroll)
+    },
+    setColors(next) {
+      colors = next
+      if (!running && firstFrameDone) paint(lastT, lastScroll)
+    },
+    destroy: stop,
+  }
+}

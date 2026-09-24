@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppHeader from './components/AppHeader.vue'
 import AppFooter from './components/AppFooter.vue'
+import SignalField from './components/ui/SignalField.vue'
 import HeroSection from './components/HeroSection.vue'
 import WorkSection from './components/WorkSection.vue'
 import ExperienceSection from './components/ExperienceSection.vue'
@@ -16,6 +17,7 @@ import ContactSection from './components/ContactSection.vue'
        credentials, then how to reach him. Reduced motion is honoured by
        `useSectionMotion` for scroll reveals and by base.css for the CSS
        animations. -->
+  <SignalField />
   <a class="skip-link" href="#main">Skip to content</a>
 
   <div id="top" class="page">
@@ -36,8 +38,11 @@ import ContactSection from './components/ContactSection.vue'
 </template>
 
 <style scoped>
+/* Transparent so the fixed signal field shows through; body keeps the paper
+   color underneath. The page sits one layer above the canvas. */
 .page {
+  position: relative;
+  z-index: 1;
   min-height: 100dvh;
-  background: var(--color-paper);
 }
 </style>

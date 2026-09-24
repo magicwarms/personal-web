@@ -1,6 +1,16 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { alphaLevel, buildAxisTerms, isHighlight, valueAt, waveReference } from './signalField'
+import {
+  FALLBACK_COLORS,
+  alphaLevel,
+  buildAxisTerms,
+  isHighlight,
+  resolveColors,
+  shouldResize,
+  spacingFor,
+  valueAt,
+  waveReference,
+} from './signalField'
 
 test('separable terms reproduce the reference wave', () => {
   const cols = 90
@@ -54,4 +64,28 @@ test('highlights are rare', () => {
   }
   // 1.47% on a 1920 x 1080 grid at 16 px spacing.
   assert.ok(hits / total > 0.005 && hits / total < 0.03, `rate ${hits / total}`)
+})
+
+test('spacingFor switches at the 60rem breakpoint', () => {
+  assert.equal(spacingFor(959), 20)
+  assert.equal(spacingFor(960), 16)
+})
+
+test('shouldResize ignores a mobile toolbar shrinking the height', () => {
+  assert.equal(shouldResize({ width: 390, height: 844 }, { width: 390, height: 780 }), false)
+  assert.equal(shouldResize({ width: 390, height: 844 }, { width: 390, height: 844 }), false)
+})
+
+test('shouldResize rebuilds when the height grows or the width changes', () => {
+  assert.equal(shouldResize({ width: 390, height: 780 }, { width: 390, height: 844 }), true)
+  assert.equal(shouldResize({ width: 390, height: 844 }, { width: 844, height: 390 }), true)
+})
+
+test('resolveColors trims values and falls back when a property is empty', () => {
+  assert.deepEqual(resolveColors(() => ''), FALLBACK_COLORS)
+  assert.deepEqual(resolveColors(() => '   '), FALLBACK_COLORS)
+  assert.deepEqual(
+    resolveColors((name) => (name === '--color-ink-3' ? ' #8f8f8f ' : '#3fb950')),
+    { dot: '#8f8f8f', accent: '#3fb950' },
+  )
 })
