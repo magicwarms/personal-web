@@ -6,14 +6,15 @@
 **Job of the page:** answer "who is this, is he available, what has he built, how do I reach him" in that order, fast.
 **Inspiration:** Refero's Vercel reference ("typeset terminal on white paper"), used as a starting point only. The site keeps its own identity: no ▲ mark, no Geist, one green accent, design-doc structure.
 
-**Dial:** ENERGY 2 / RHYTHM 2 / MOTION 2
+**Dial:** ENERGY 3 / RHYTHM 2 / MOTION 4
 
 ## Identity motifs
 
 1. **Numbered margin labels.** Every section opens with a mono index (`01`) and title in a left margin column above a full-width hairline, like the sections of an RFC. On wide screens the label stays in view while its section scrolls.
 2. **Spec tables.** Key/value rows separated by hairlines for working details, skills, credentials, and contact links. It is a backend engineer's native format and it scans fast.
 3. **The system diagram.** The hero shows the Kirimfresh.id backend (Go/Fiber API, PostgreSQL, Redis, Meilisearch, RabbitMQ, FCM, payments, AI assistant), with a green pulse moving along each edge in request order. It is his real work, not decoration.
-4. **Healthcheck green.** The only chromatic color. It marks availability, diagram traffic, and link hover, and echoes "stay up".
+4. **Healthcheck green.** The only chromatic color. It marks availability, diagram traffic, the section being read, rare signal dots, and link hover, and echoes "stay up".
+5. **The signal field.** A fixed dot grid behind the whole page whose density bands drift like a signal: gray dots with rare green ones, drawn on Canvas 2D. Text never sits on it; headings and content blocks sit on paper fills, like document pages on graph paper.
 
 ## Tokens
 
@@ -53,7 +54,7 @@ Labels are sentence case. No uppercase with wide tracking.
 ### Shape and space
 
 - Radius 6px on buttons, inputs, and panels. Full round only on the status dot.
-- 1px hairlines, no shadows.
+- 1px hairlines, no shadows. The one exception is `.paper-fill`: a 12px spread in the paper color that extends a text block's fill over the signal field. It reads as paper, never as a shadow.
 - Shell max 1120px. Sections are a 3/9 label/body grid on desktop and stack on mobile.
 - Section padding `clamp(48px, 7vh, 80px)`; sticky header 64px.
 
@@ -67,10 +68,12 @@ Labels are sentence case. No uppercase with wide tracking.
 
 ## Motion
 
-- Hero: a short CSS stagger on load. Nothing pinned, nothing scrubbed.
-- Diagram: edges draw in once, then pulses loop; paused offscreen.
-- Scroll: one short reveal (8px rise, 0.45s, once) for blocks below the fold. Blocks already on screen are never hidden.
-- Reduced motion: everything renders in its finished state.
+- Signal field: dots every 16px (20px under 60rem) behind the page. Two summed sine waves decide which dots show and how strongly (six alpha levels, peak 0.6); about 1.5% of dots, fixed by a hash, are green. The bands drift over time and move at 0.3x scroll speed, the page's only background parallax. 30 fps cap, stops in hidden tabs, starts once the page is idle, fades in over 600ms.
+- Hero: a short CSS stagger on load. On desktop the diagram scrubs up to 40px slower than the copy as the hero scrolls out.
+- Diagram: edges draw in once, then pulses loop; paused offscreen. Hover, keyboard focus, or a tap lights a node and its neighbors, and the caption shows the node's line from the CV. "Trace a request" sends one dash through the system in request order.
+- Active section: the header's green bar and the margin label's index follow the section being read; on desktop a 48px hairline under the index fills as the section scrolls (scrubbed).
+- Scroll: section rules and table rules draw in from the left (0.6s), and blocks below the fold rise 8px (0.45s, once). Anything already on screen is never hidden.
+- Reduced motion: the signal field is one still frame, nothing is scroll-linked, diagram highlighting still works and the trace lights the whole path at once, and everything else renders in its finished state.
 
 ## Do
 
@@ -80,7 +83,7 @@ Labels are sentence case. No uppercase with wide tracking.
 
 ## Don't
 
-- No particles, gradients, glows, background grids, or decorative icons.
+- The signal field is the only background layer. No gradients, glows, second accent, or decorative icons.
 - No second accent color.
 - No em dashes in copy.
 - No fabricated metrics, testimonials, or logos.

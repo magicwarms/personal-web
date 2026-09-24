@@ -2,9 +2,10 @@
  * Single registration point for GSAP and its plugins.
  *
  * Imported for its side effects in `main.ts`, so plugins are registered once
- * for the whole app rather than in every component that animates. GSAP only
- * drives scroll reveals and the earlier-roles accordion now; the hero and
- * the system diagram animate in CSS.
+ * for the whole app rather than in every component that animates. GSAP
+ * drives the scroll reveals, hairline draw-in, label progress, hero depth,
+ * the diagram trace, and the earlier-roles accordion. The hero load stagger
+ * and the diagram's idle pulses stay in CSS; the signal field is Canvas 2D.
  */
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
