@@ -61,6 +61,8 @@ interface SignalFieldOptions {
   colors: SignalFieldColors
   /** Returns window.scrollY; read once per frame, no scroll listener. */
   getScroll: () => number
+  /** Called once, after the first frame is on the canvas (the fade-in hook). */
+  onFirstFrame?: () => void
 }
 
 interface SignalField {
@@ -113,6 +115,7 @@ Exported pure functions for tests:
 - `buildAxisTerms(cols, rows, t, rowOffset)`, returning the six arrays.
 - `valueAt(terms, i, j): number`, the separable sum for one dot.
 - `alphaLevel(value): number` and `isHighlight(i, j): boolean`, described below.
+- `spacingFor(width)`, `shouldResize(prev, next)`, `resolveColors(read)` and `FALLBACK_COLORS`, the sizing and color rules below.
 
 ### Alpha levels and batching
 
@@ -129,7 +132,7 @@ Exported pure functions for tests:
 ### Colors and themes
 
 - `SignalField.vue` resolves `--color-ink-3` and `--color-accent` with `getComputedStyle(document.documentElement)`.
-- It re-reads them when `useTheme().theme` changes and when `matchMedia('(prefers-color-scheme: dark)')` fires `change`.
+- It re-reads them when `<html data-theme>` changes (a `MutationObserver`) and when `matchMedia('(prefers-color-scheme: dark)')` fires `change`. It cannot watch `useTheme().theme`: `useTheme()` keeps its state per call, so the header's toggle is only visible through the attribute it writes.
 - If a value comes back empty, it falls back to the light-theme hex values from `base.css`.
 
 ### Frame loop
@@ -160,10 +163,10 @@ Exported pure functions for tests:
 
 At reference strength, text cannot sit on dots. Text blocks get a plain paper fill, so the page reads as document pages lying on graph paper.
 
-- **Mechanism:** `background: var(--color-paper)` plus `box-shadow: 0 0 0 12px var(--color-paper)`. The spread shadow extends the fill 12 px past the text without changing layout. It is a fill, not a visible shadow; `DESIGN.md` records this so it is not mistaken for a "no shadows" violation.
+- **Mechanism:** one utility class, `.paper-fill`, in `base.css`: `background: var(--color-paper)` plus `box-shadow: 0 0 0 12px var(--color-paper)`. The spread shadow extends the fill 12 px past the text without changing layout. It is a fill, not a visible shadow; `DESIGN.md` records this so it is not mistaken for a "no shadows" violation.
 - **Filled elements:**
   - `.heading` (SectionHeading root): `width: fit-content`, so only the label itself is filled and dots stay visible in the rest of the label column.
-  - A new `.section__body` class on each section's content column (added to the existing wrapper, or a wrapper is added where the content is not already in one element).
+  - Each section's content column (the existing wrapper div, or a new wrapper div in Skills, whose content is a bare `RevealItem`).
   - `.hero__copy`, `.proof` (ProofStrip), and the footer's inner content.
 - Existing surface panels (featured case study, diagram, contact form) are already opaque and stay as they are.
 - Dots stay visible in the outer gutters, the label column around each label, the vertical section padding, and the hero around the copy and diagram.
@@ -180,14 +183,15 @@ At reference strength, text cannot sit on dots. Text blocks get a plain paper fi
 ### Highlight
 
 - Reactive `activeId: string | null`, default `null` (prerender and hydration match).
-- Set by `pointerenter` on pointer devices with hover (`(hover: hover)`), by `focus`, and by tap (tap toggles). Cleared by `pointerleave`, `blur`, tap on empty diagram space, and `Escape`.
-- Lit set = the active node, its edges, and its neighbors from `buildNeighbors`. Everything else gets `--dim` (opacity 0.35). Transition 200 ms, `var(--ease-out)`.
+- Set by mouse `pointerenter`, by keyboard focus (`:focus-visible` only), by tap (tap toggles), and by Enter or Space (toggles). Cleared by mouse `pointerleave`, `blur`, a click on empty diagram space, and `Escape`.
+- The rules live in a pure reducer, `reduceActive(current, action)` in `src/composables/diagramActive.ts`, with unit tests. The case it exists for: a tap focuses a `tabindex` element and then clicks it, so if any focus highlighted and the click toggled, every tap would switch the highlight on and straight back off.
+- Lit set = the active node, its edges, and its neighbors from `buildNeighbors`. Everything else gets `--dim` (opacity 0.35). Transition 200 ms, `var(--ease-out)`. The opacity goes on each node's `rect` and `text`, not the `<g>`: the `<g>` holds the `diagram-fade` animation with `fill-mode: both`, which would fight an opacity set on the same element.
 - Looping pulses run only on lit edges while a node is active.
 
 ### Caption
 
 - `aria-live="polite"`. Default text is today's caption.
-- With a node active, it shows that node's note from `src/data/diagram.ts`. **Every note must be sourced from the CV or the existing copy in `src/data/portfolio.ts`.** A node with no sourced fact gets the generated line "Connects to X and Y." The plan lists each proposed note with its source for Andhana to confirm.
+- With a node active, it shows that node's note from `src/data/diagram.ts`. **Every note must be sourced from the CV or the existing copy in `src/data/portfolio.ts`.** A node with no sourced fact gets a generated line such as "PostgreSQL: connects to API." Four nodes have notes, each a verbatim line from the Kirimfresh.id `did` list in `portfolio.ts` (a unit test enforces this): AI assistant, API, Payments, RabbitMQ.
 
 ### Trace a request
 
@@ -249,16 +253,19 @@ At reference strength, text cannot sit on dots. Text blocks get a plain paper fi
 
 - One app-level composable, `src/composables/useRuleDraw.ts`, called from `App.vue` with `useSectionMotion` rooted on `<main>`.
 - `prep`: elements whose top is below the viewport get `--draw: 0`. Anything already on screen stays drawn, so nothing blinks.
-- `build`: `ScrollTrigger.batch` over `.section, .spec, .spec__row`, `start: 'top 95%'`, `once: true`, `onEnter: batch => gsap.to(batch, { '--draw': 1, duration: 0.6, stagger: 0.04 })`.
-- Rules start at `top 95%`, before `REVEAL_START` (`top 90%`), so each rule draws just before its content rises in.
+- `build`: two `ScrollTrigger.batch` calls with `once: true` and `onEnter: batch => gsap.to(batch, { '--draw': 1, duration: 0.6, stagger: 0.04 })`:
+  - `.section` at `start: 'top 95%'`, so a section's rule draws just before its content rises in at `REVEAL_START` (`top 90%`).
+  - `.spec, .spec__row` at `REVEAL_START`. These rules sit inside `RevealItem` blocks, which stay invisible until `REVEAL_START`; firing earlier would finish the draw unseen.
+- Anything already past its start when the builder runs (a reload restored mid-page, or a matchMedia re-run after crossing 60rem) is set to `--draw: 1` directly instead of waiting for a trigger.
+- `--draw` is registered with `@property` (`inherits: false`, initial value 1), so a section's value never leaks into the rules inside it.
 - Reduced motion: nothing is prepped; everything stays drawn.
 - The accordion in `ExperienceSection` already calls `ScrollTrigger.refresh()` after it resizes, which keeps these triggers correct.
 
 ## 6. Hero depth
 
 - New wrapper `<div class="hero__depth">` inside `.hero__visual`, around `<SystemDiagram />`. The transform goes on the wrapper because `.hero__visual` runs the `rise-in` CSS animation with `fill-mode: both`, and a CSS animation overrides GSAP's inline transform.
-- `useSectionMotion` in `HeroSection.vue`, `isDesktop` and not `reduceMotion`: `gsap.to('.hero__depth', { y: 48, ease: 'none', scrollTrigger: { trigger: root, start: 'top top', end: 'bottom top', scrub: true } })`.
-- Depth order: dot field (0.3 of scroll), diagram (slower than copy by up to 48 px), copy (normal).
+- `useSectionMotion` in `HeroSection.vue`, `isDesktop` and not `reduceMotion`: `gsap.to('.hero__depth', { y: 40, ease: 'none', scrollTrigger: { trigger: '.hero__grid', start: 'top top', end: 'bottom top', scrub: true } })`. 40 px and the grid as trigger keep the diagram inside the grid's bottom margin (at least 40 px on desktop), so it never slides over the proof strip while visible.
+- Depth order: dot field (0.3 of scroll), diagram (slower than copy by up to 40 px), copy (normal).
 - Mobile and reduced motion: no transform.
 
 ## 7. Error handling
