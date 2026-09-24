@@ -4,7 +4,7 @@ The site runs as a **single Node process**. Express serves the built Vue SPA fro
 and hosts `POST /api/contact`, which relays the contact form over SMTP. Dokploy's built-in
 Traefik terminates TLS in front of it.
 
-Production domain: **https://magicwarms.my.id**
+Production domain: **https://andhanautama.id**
 
 ---
 
@@ -47,12 +47,12 @@ enquiries.
 2. **Build Type: Dockerfile**, path `./Dockerfile`. Dokploy clones and builds on the VPS,
    so no container registry and no registry credentials are involved.
 3. **Environment tab** → add the seven variables above.
-4. **Domains** → `magicwarms.my.id`, Container Port **3000**, HTTPS on, certificate
+4. **Domains** → `andhanautama.id`, Container Port **3000**, HTTPS on, certificate
    provider **Let's Encrypt**.
-   - DNS must resolve *before* deploying: an `A` record for `magicwarms.my.id` pointing at
-     the VPS public IP. Check with `dig +short magicwarms.my.id`. If it does not resolve,
+   - DNS must resolve *before* deploying: an `A` record for `andhanautama.id` pointing at
+     the VPS public IP. Check with `dig +short andhanautama.id`. If it does not resolve,
      the Let's Encrypt HTTP-01 challenge fails and Traefik serves its self-signed default.
-   - Optionally add `www.magicwarms.my.id` redirecting to the apex.
+   - Optionally add `www.andhanautama.id` redirecting to the apex.
 5. **Deploy.**
 
 Because `.env` is gitignored, the clone on the VPS will not contain it. That is intended —
@@ -63,8 +63,8 @@ configuration lives only in Dokploy.
 ## Verifying a deploy
 
 ```bash
-curl -sI https://magicwarms.my.id/            # 200, valid cert, CSP + HSTS present
-curl -s  https://magicwarms.my.id/api/health  # {"ok":true,"uptime":...}
+curl -sI https://andhanautama.id/            # 200, valid cert, CSP + HSTS present
+curl -s  https://andhanautama.id/api/health  # {"ok":true,"uptime":...}
 ```
 
 In the Dokploy logs, a healthy boot prints:
@@ -95,8 +95,8 @@ spoof `X-Forwarded-For` to pick its own rate-limit key.
 
 **Blank page or missing fonts after deploy.** Check the browser console for CSP
 violations. The policy in `server/index.ts` allowlists `fonts.googleapis.com` /
-`fonts.gstatic.com` (JetBrains Mono) and `api.fontshare.com` / `cdn.fontshare.com`
-(Switzer); any new third-party asset needs adding there.
+`fonts.gstatic.com` (Instrument Sans, IBM Plex Mono); any new third-party asset
+needs adding there.
 
 **Certificate is self-signed.** DNS was not resolving when the app was first deployed.
 Fix the `A` record, then redeploy so Traefik retries the ACME challenge.

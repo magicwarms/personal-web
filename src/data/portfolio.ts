@@ -1,30 +1,56 @@
 /**
  * Single source of truth for every piece of portfolio copy.
  * Components stay presentational; editing the site means editing this file.
+ *
+ * Every number and claim below comes from the 2026 CV
+ * (public/assets/CV-Andhana-Utama-2026.pdf). Where the CV gives no metric
+ * for a piece of work, none is shown.
  */
 
-export interface Stat {
+export interface ProofPoint {
+  id: string;
   value: string;
   label: string;
+  /** Where the number comes from, shown under it. */
+  source: string;
 }
 
 export interface Project {
   id: string;
   index: string;
-  title: string;
   org: string;
-  stack: string;
-  highlights: string[];
+  period: string;
+  role: string;
+  title: string;
+  summary: string;
+  did?: string[];
+  results?: string[];
+  stack?: string[];
+  /** Rendered as the lead case study. */
+  featured?: boolean;
+}
+
+export interface EarlierProject {
+  id: string;
+  title: string;
+  client: string;
+  period: string;
 }
 
 export interface Role {
   id: string;
   title: string;
   company: string;
+  location: string;
   period: string;
-  highlights: string[];
+  scope: string;
   /** Roles before 2019 are collapsed behind a toggle. */
   earlier?: boolean;
+}
+
+export interface Detail {
+  label: string;
+  value: string;
 }
 
 export interface StackGroup {
@@ -36,7 +62,10 @@ export interface StackGroup {
 export interface Certification {
   id: string;
   title: string;
-  meta: string;
+  issuer: string;
+  date: string;
+  /** Public verification URL, when the issuer provides one. */
+  href?: string;
 }
 
 export interface ContactLink {
@@ -49,86 +78,114 @@ export interface ContactLink {
 
 export const profile = {
   name: "Andhana Utama",
-  title: "Senior Backend Engineer · Technical Lead",
-  location: "Batam, Riau Islands, Indonesia",
-  timezone: "Batam, Indonesia · GMT+7",
+  title: "Senior Backend Engineer and Technical Lead",
+  location: "Batam, Indonesia",
+  timezone: "GMT+7",
   email: "andhanautama@gmail.com",
   github: "https://github.com/magicwarms",
-  linkedin: "https://linkedin.com/in/andhanautama-4a2b1a130",
+  linkedin: "https://linkedin.com/in/andhana-utama-4a2b1a130",
   cv: "/assets/CV-Andhana-Utama-2026.pdf",
   photo: "/assets/andhana.jpg",
+  availability: "Available now",
+  workModes: "Remote, Batam (GMT+7), or relocation anywhere in the world",
+  headline: "I build backend systems that scale and stay up.",
   intro:
-    "Eight years building and scaling backend systems in Go and Node.js across Indonesia, Singapore, and Malaysia. Distributed systems, API design, and the cloud infrastructure underneath them.",
+    "Senior backend engineer and technical lead. 11 years shipping Go and Node.js services for teams in Indonesia, Singapore, and Malaysia. Most recently I led the backend at Kirimfresh.id and put its customer-facing AI assistant into production.",
   about: [
-    "Senior Backend Engineer and Technical Lead with 8+ years building and scaling backend systems in Go and Node.js across startups and established companies in Indonesia, Singapore, and Malaysia.",
-    "Deep expertise in distributed systems, API design (REST, GraphQL, event-driven), and cloud infrastructure (GCP, AWS). Track record of reducing downtime by 30%, cutting infrastructure costs by 30%, and mentoring engineers while shipping business-critical systems.",
+    "Most of my work sits behind the API: service design, message queues, caching, and the PostgreSQL queries underneath. As a tech lead I also set coding standards and API contracts, review code, mentor engineers, and connect engineering with the business side.",
+    "I work AI-native. I use Claude Code across the development cycle and review its output critically instead of trusting it. I have shipped a customer-facing AI assistant to production and built a LangChain deep agent with tool-calling subagents.",
   ],
-  languages:
-    "Bahasa Indonesia (native) · English (professional working proficiency)",
-  availability: "Available for new work",
 } as const;
 
-export const roleTitles = [
-  "Backend Engineer",
-  "Technical Lead",
-  "Systems Architect",
-] as const;
-
-export const stats: Stat[] = [
-  { value: "8+", label: "Years engineering" },
-  { value: "30%", label: "Less downtime" },
-  { value: "90%", label: "Test coverage" },
-  { value: "30%", label: "Infra cost cut" },
+export const proof: ProofPoint[] = [
+  { id: "years", value: "11+", label: "years building backends", source: "2015-2026" },
+  { id: "downtime", value: "~30%", label: "less downtime", source: "TreeDots" },
+  { id: "coverage", value: "~90%", label: "test coverage, ~50% fewer regressions", source: "TreeDots" },
+  { id: "infra", value: "~30%", label: "lower annual infrastructure cost", source: "BrainPoolTech" },
 ];
 
 export const projects: Project[] = [
   {
-    id: "kirimfresh-platform",
+    id: "kirimfresh",
     index: "01",
-    title: "Order, catalog & delivery platform",
-    org: "Kirimfresh.id · 2025—Present",
-    stack: "Go (Fiber) · PostgreSQL · Redis · RabbitMQ · Meilisearch",
-    highlights: [
-      "Architected and developed backend system applying a clean handler-service-repository pattern with dependency injection",
-      "Designed and maintained RESTful APIs and real-time features supporting order processing, product catalog, and delivery tracking",
-      "Supported event-driven architecture using RabbitMQ for asynchronous processing (order events, notifications)",
+    org: "Kirimfresh.id",
+    period: "2025-2026",
+    role: "Technical Lead",
+    title: "Ordering, delivery, and an AI assistant",
+    summary:
+      "I architected and built the production backend for orders, the product catalog, delivery tracking, payments, and notifications.",
+    did: [
+      "Go (Fiber) services in a layered handler-service-repository design with dependency injection",
+      "RabbitMQ event processing for order events, delivery tracking, and notifications via Firebase FCM",
+      "A customer-facing AI assistant for recipe search, nutrition questions, product lookups, and support",
+      "Payment gateway and third-party API integrations",
     ],
+    stack: ["Go", "Fiber", "PostgreSQL", "Redis", "RabbitMQ", "Meilisearch"],
+    featured: true,
   },
   {
-    id: "treedots-testing",
+    id: "treedots",
     index: "02",
-    title: "Test automation & caching overhaul",
-    org: "TreeDots · 2022—2024",
-    stack: "Node.js · GraphQL · Redis · PostgreSQL",
-    highlights: [
-      "Introduced automated testing, increasing test coverage to 90% and cutting regressions by 50%",
-      "Implemented caching strategies that reduced database queries by 50% and significantly lowered server load",
-      "Refactored legacy codebases, reducing complexity by 30% and increasing feature delivery speed by 25%",
+    org: "TreeDots",
+    period: "2022-2024",
+    role: "Senior Backend Engineer, remote (Singapore)",
+    title: "Stabilising a production platform",
+    summary:
+      "Critical production issues first, then tests, caching, and refactoring on a legacy codebase.",
+    results: [
+      "Downtime ~30% lower",
+      "Test coverage ~90%, regressions ~50% fewer",
+      "Database queries ~50% fewer after caching and SQL optimisation",
+      "Feature delivery ~25% faster after refactoring",
+      "Bugs ~30% fewer after introducing a code review practice",
+      "Third-party integrations that contributed to ~15% customer base growth",
+      "Shipped the Issue Handling flow for customer order problems",
     ],
+    stack: ["Node.js", "GraphQL", "PostgreSQL", "Redis"],
   },
   {
-    id: "treedots-issue-handling",
+    id: "brainpooltech",
     index: "03",
-    title: "Issue Handling for customer orders",
-    org: "TreeDots · 2022—2024",
-    stack: "REST · Third-party integrations",
-    highlights: [
-      'Built an "Issue Handling" feature for customer order problems, smoothing the customer support flow',
-      "Diagnosed and resolved critical production issues, reducing downtime by 30% and improving overall system stability",
-      "Integrated third-party APIs, enabling new services and contributing to 15% customer base growth",
+    org: "BrainPoolTech",
+    period: "2020-2022",
+    role: "Backend Engineer, remote (Singapore)",
+    title: "Nodes: spatial asset tracking",
+    summary:
+      "Backend for a spatial-data asset-tracking platform serving events, real estate, insurance, construction, and government clients.",
+    results: [
+      "Annual infrastructure cost ~30% lower after a stack modernisation",
+      "Response times ~30% faster",
+      "New-feature implementation time ~20% shorter",
     ],
   },
   {
-    id: "cudy-chatbot",
+    id: "cudy",
     index: "04",
-    title: "Nearby-tutor chatbot",
-    org: "Cudy · 2019—2020",
-    stack: "Node.js · Telegram & WhatsApp APIs",
-    highlights: [
-      "Built a chatbot (Telegram and WhatsApp) for finding nearby tutors",
-      "Designed and built RESTful APIs that increased third-party integrations by 60%",
-      "Migrated legacy systems to more efficient technologies, improving maintainability and reducing technical debt",
+    org: "Cudy",
+    period: "2019-2020",
+    role: "Backend Engineer",
+    title: "TutorSMS: find a tutor from chat",
+    summary: "A Telegram and WhatsApp chatbot for finding tutors nearby.",
+    results: [
+      "Third-party integrations up ~60% through new REST APIs",
+      "~30% annual infrastructure savings after migrating legacy systems",
     ],
+    stack: ["Node.js", "Telegram and WhatsApp APIs"],
+  },
+];
+
+export const earlierProjects: EarlierProject[] = [
+  {
+    id: "ksop",
+    title: "Government document workflow",
+    client: "KSOP Kepulauan Sambu port authority",
+    period: "2016",
+  },
+  {
+    id: "pln-batam",
+    title: "HSE, billing, and asset-management systems",
+    client: "Bright PLN Batam, a state-owned electricity utility",
+    period: "2018-2019",
   },
 ];
 
@@ -137,151 +194,152 @@ export const roles: Role[] = [
     id: "kirimfresh",
     title: "Technical Lead",
     company: "Kirimfresh.id",
-    period: "2025—Present · Indonesia",
-    highlights: [
-      "Led technical decision-making including system architecture, infrastructure choices, and performance optimization strategies",
-      "Managed end-to-end delivery lifecycle: backlog grooming, sprint planning, execution tracking, release management",
-      "Integrated external services including payment gateways, Firebase FCM, and third-party APIs",
-      "Defined and enforced coding standards, API contracts, and development workflows across the team",
-    ],
+    location: "Indonesia",
+    period: "2025-2026",
+    scope:
+      "Owned architecture, infrastructure, and performance decisions, and the delivery cycle through release. Set coding standards, API contracts, and team workflows, and worked as the link between engineering and business stakeholders.",
   },
   {
     id: "silentmode",
     title: "Senior Software Engineer",
     company: "Silentmode Sdn. Bhd.",
-    period: "2024—2026 · Remote, Malaysia",
-    highlights: [
-      "Designed and delivered scalable backend solutions with a strong focus on performance, reliability, and maintainability",
-      "Led code reviews and mentored junior engineers, accelerating team capability and code quality",
-      "Provided production support within SLA, performing root-cause analysis to reduce recurring customer issues",
-      "Contributed to system architecture decisions, particularly around scalability and performance under load",
-    ],
+    location: "Remote, Malaysia",
+    period: "2024-2026",
+    scope:
+      "Backend services for a fully remote team. Code reviews and mentoring for junior engineers. Production support within SLA, with root-cause analysis on recurring customer issues.",
   },
   {
     id: "treedots",
     title: "Senior Backend Engineer",
     company: "TreeDots Pte. Ltd.",
-    period: "2022—2024 · Remote, Singapore",
-    highlights: [
-      "Diagnosed and resolved critical production issues, reducing downtime by 30% and improving overall system stability",
-      "Introduced automated testing, increasing test coverage to 90% and cutting regressions by 50%",
-      "Implemented caching strategies that reduced database queries by 50% and significantly lowered server load",
-    ],
+    location: "Remote, Singapore",
+    period: "2022-2024",
+    scope: "Production stability, test automation, caching, and legacy refactoring.",
   },
   {
     id: "brainpooltech",
     title: "Backend Engineer",
     company: "BrainPoolTech Pte. Ltd.",
-    period: "2020—2022 · Remote, Singapore",
-    highlights: [
-      "Evaluated and modernised the tech stack, reducing annual infrastructure costs by 30%",
-      "Optimised database queries and backend logic, improving response times by 30%",
-      "Worked closely with product managers and designers to translate business requirements into technical solutions",
-    ],
+    location: "Remote, Singapore",
+    period: "2020-2022",
+    scope:
+      "Stack modernisation and query optimisation. Worked with product managers and designers to turn requirements into technical solutions.",
   },
   {
     id: "cudy",
     title: "Backend Engineer",
     company: "Cudy Pte. Ltd.",
-    period: "2019—2020 · Singapore / Batam",
-    highlights: [
-      "Designed and built RESTful APIs that increased third-party integrations by 60%",
-      "Improved application performance through query optimisation and caching strategies",
-      "Integrated external APIs to expand product features and business partnerships",
-    ],
+    location: "Singapore / Batam",
+    period: "2019-2020",
+    scope: "REST APIs, legacy migration, and the TutorSMS chatbot.",
   },
   {
     id: "infopro",
     title: "Software Engineer",
     company: "Infopro Mandiri Solusi",
-    period: "2019 · Batam, Indonesia",
+    location: "Batam",
+    period: "2019",
+    scope: "REST APIs that expanded integration capabilities. API response times ~20% faster.",
     earlier: true,
-    highlights: [
-      "Developed RESTful APIs that significantly expanded integration capabilities",
-      "Collaborated across teams to optimise API usage, improving response times by 20%",
-    ],
   },
   {
     id: "tellinet",
     title: "Software Engineer",
     company: "Tellinet Teramedia Indonesia",
-    period: "2018 · Batam, Indonesia",
+    location: "Batam",
+    period: "2018",
+    scope: "Backend services and database query optimisation. Response times ~30% faster.",
     earlier: true,
-    highlights: [
-      "Optimised backend services and database queries, reducing response times by 30%",
-      "Implemented client-side caching strategies, reducing server load and improving page load times",
-    ],
   },
   {
     id: "little-blue-planet",
     title: "Web Administrator",
     company: "Little Blue Planet Indonesia",
-    period: "2017—2018 · Batam, Indonesia",
+    location: "Batam",
+    period: "2017-2018",
+    scope: "Active Directory and Group Policy. Performance profiling cut memory use ~60%.",
     earlier: true,
-    highlights: [
-      "Managed Active Directory and Group Policy, improving access control and system security",
-      "Performed performance profiling and optimisation, reducing memory usage by 60%",
-    ],
   },
   {
     id: "proweb-media",
     title: "Backend Engineer",
     company: "Proweb Media Indonesia",
-    period: "2015—2017 · Batam, Indonesia",
+    location: "Batam",
+    period: "2015-2017",
+    scope: "Backend services and REST APIs for internal products. Resource use ~20% lower.",
     earlier: true,
-    highlights: [
-      "Built and maintained backend services and RESTful APIs supporting multiple internal products",
-      "Integrated third-party services to expand application functionality and revenue streams",
-    ],
   },
 ];
 
+export const workDetails: Detail[] = [
+  { label: "Based in", value: "Batam, Indonesia (GMT+7)" },
+  { label: "Open to", value: "Remote, hybrid or on-site in Batam, or relocation to any country" },
+  { label: "Availability", value: "Available now" },
+  { label: "Roles", value: "Senior backend engineer, technical lead" },
+  { label: "Languages", value: "Bahasa Indonesia (native), English (professional working proficiency)" },
+];
+
 export const stackGroups: StackGroup[] = [
-  {
-    id: "languages",
-    label: "Languages",
-    items: ["Go", "JavaScript", "TypeScript"],
-  },
-  {
-    id: "frameworks",
-    label: "Backend frameworks",
-    items: ["Node.js", "Express.js", "GoFiber", "NestJS"],
-  },
+  { id: "languages", label: "Languages", items: ["Go", "TypeScript", "JavaScript"] },
+  { id: "frameworks", label: "Frameworks", items: ["Fiber", "Express.js", "NestJS"] },
   {
     id: "apis",
-    label: "APIs & messaging",
+    label: "APIs and messaging",
     items: ["REST", "GraphQL", "Event-driven", "RabbitMQ"],
   },
   {
     id: "data",
-    label: "Data & search",
-    items: ["PostgreSQL", "SQL & NoSQL", "Redis", "Firebase", "Meilisearch"],
+    label: "Data and search",
+    items: ["PostgreSQL", "Redis", "Firebase", "Meilisearch", "SQL and NoSQL"],
   },
+  { id: "cloud", label: "Cloud", items: ["Google Cloud Platform", "AWS"] },
+  { id: "ai", label: "AI", items: ["Claude Code", "LangChain", "Production AI assistant"] },
   {
-    id: "cloud",
-    label: "Cloud & infrastructure",
-    items: ["Google Cloud Platform", "AWS"],
+    id: "practice",
+    label: "Practice",
+    items: [
+      "Automated testing",
+      "Code review",
+      "Layered architecture with DI",
+      "SLA production support",
+      "Mentoring",
+    ],
   },
 ];
 
 export const education = {
-  index: "01",
   school: "Politeknik Negeri Batam",
-  meta: "2011—2014 · GPA 3.3",
-  detail:
-    "Ahli Madya (Associate Expert / D3 Diploma) in Information Technology. Member of the IT Organization in college.",
+  degree: "Ahli Madya (D3 Diploma) in Information Technology",
+  period: "2011-2014",
+  note: "GPA 3.3",
 };
 
 export const certifications: Certification[] = [
   {
     id: "nestjs",
-    title: "NestJS — Zero to Hero Backend Development",
-    meta: "Jan 2026",
+    title: "NestJS Zero to Hero, Modern TypeScript Backend Development",
+    issuer: "Udemy",
+    date: "Jan 2026",
+    href: "https://ude.my/UC-99b148db-4a66-4af9-ae91-48fdb5fa18bf",
   },
   {
     id: "cybersecurity",
-    title: "The Absolute Beginners Guide to Cyber Security 2026 — Part 1",
-    meta: "Apr 2026 · Udemy · 5 hours",
+    title: "The Absolute Beginners Guide to Cyber Security 2026, Part 1",
+    issuer: "Udemy",
+    date: "Apr 2026",
+    href: "https://ude.my/UC-00937141-1e43-45c5-8ef1-511a37dc0f67",
+  },
+  {
+    id: "fcns",
+    title: "Foresec Certified in Networking Security (FCNS)",
+    issuer: "FORESEC",
+    date: "Jul 2014",
+  },
+  {
+    id: "java",
+    title: "Java Fundamentals",
+    issuer: "Oracle Academy",
+    date: "Jun 2014",
   },
 ];
 
@@ -295,7 +353,7 @@ export const contactLinks: ContactLink[] = [
   {
     id: "linkedin",
     label: "LinkedIn",
-    value: "/in/andhanautama",
+    value: "/in/andhana-utama",
     href: profile.linkedin,
     external: true,
   },
@@ -308,13 +366,16 @@ export const contactLinks: ContactLink[] = [
   },
 ];
 
-export const contactIntro =
-  "Open to senior backend and technical lead roles, remote or Batam-based. If you have a system that needs to scale or stay up, get in touch.";
+export const contact = {
+  heading: "Hiring a senior backend engineer?",
+  intro:
+    "Open to senior backend and technical lead roles: remote, hybrid or on-site in Batam, or relocation anywhere in the world. Tell me about the role, the team, and the system you're building.",
+};
 
 export const navItems = [
-  { id: "about", label: "About" },
   { id: "work", label: "Work" },
   { id: "experience", label: "Experience" },
-  { id: "stack", label: "Stack" },
-  { id: "credentials", label: "Credentials" },
+  { id: "about", label: "About" },
+  { id: "skills", label: "Skills" },
+  { id: "contact", label: "Contact" },
 ] as const;

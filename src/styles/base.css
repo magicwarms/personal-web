@@ -1,111 +1,93 @@
-/* Dala void system: dark-stage, pure black canvas, one violet accent,
- * amber punctuation. Sourced from DESIGN.md. Primitives use DESIGN.md's
- * own names; semantic aliases below are what components actually
- * reference, so the token rename does not require touching every call
- * site.
- * display/body: Switzer (free substitute for PP Neue Montreal, see
- * DESIGN.md's own "Substitute: Inter" note; Switzer is closer geometry)
- * mono: JetBrains Mono, kept for the CodePanel real code content since
- * DESIGN.md has no code-display component, and code reads as code.
+/* Paper-and-ink engineering-doc system. Sourced from DESIGN.md.
+ * display/body: Instrument Sans. A crisp grotesk that holds tight tracking
+ *   at display sizes and stays readable at 17px body.
+ * mono: IBM Plex Mono, for metadata, labels, and spec tables. Reads as
+ *   documentation rather than a hacker terminal.
+ * One accent, healthcheck green: availability, diagram traffic, link hover.
  */
 
 /* ---------------------------------------------------------------------------
    Design tokens
 --------------------------------------------------------------------------- */
 :root {
-  /* Colors — primitives, DESIGN.md's exact values/names. */
-  --color-void: #000000;
-  --color-bone-white: #ffffff;
-  --color-ash-gray: #9a9a9a;
-  --color-silver-mist: #bdbdbd;
-  --color-electric-iris: #8052ff;
-  --color-saffron-spark: #ffb829;
-  --color-deep-verdant: #15846e;
+  color-scheme: light;
 
-  /* Iris text variant: #8052ff is 4.57:1 on black, which fails AA for
-     text under 18.66px. Fills (buttons, dots, logo, particles) keep the
-     exact spec hex; small violet text (role labels, active tab) uses
-     this lighter step instead. 6.0:1 on black. */
-  --color-electric-iris-text: #9370ff;
+  /* Light theme. Every text token is at least 4.5:1 on --color-paper. */
+  --color-paper: #fafafa;
+  --color-surface: #ffffff;
+  --color-rule: #e5e5e5;
+  /* Borders on interactive controls need 3:1 against the paper (WCAG 1.4.11). */
+  --color-rule-strong: #8f8f8f;
+  --color-ink: #171717;
+  --color-ink-2: #4d4d4d;
+  --color-ink-3: #666666;
+  --color-accent: #1a7f37;
+  --color-danger: #b42318;
+  --color-on-ink: #fafafa;
 
-  /* Danger: not in DESIGN.md, the system has no error state defined.
-     Picked to sit outside the violet/amber pair so it never reads as
-     "the brand color", same reasoning DESIGN.md gives for keeping alert
-     apart from accent. 7.45:1 on black. */
-  --color-danger: #ff6961;
+  --font-display: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* Semantic aliases — existing component code reads these names. */
-  --color-paper: var(--color-void);
-  --color-ink: var(--color-bone-white);
-  --color-ink-2: var(--color-silver-mist);
-  --color-ink-3: var(--color-ash-gray);
-  --color-ink-4: var(--color-ash-gray);
-  --color-accent: var(--color-electric-iris);
-  --color-accent-bright: var(--color-electric-iris-text);
-  --color-accent-ink: #ffffff;
-  --color-focus: var(--color-electric-iris-text);
-  --color-warn: var(--color-saffron-spark);
-  --color-alert: var(--color-danger);
+  --text-xs: 0.75rem; /* 12px */
+  --text-meta: 0.8125rem; /* 13px, mono metadata */
+  --text-sm: 0.9375rem; /* 15px */
+  --text-body: 1.0625rem; /* 17px */
+  --text-lead: clamp(1.0625rem, 1.4vw, 1.1875rem); /* 17 -> 19px */
+  --text-h3: 1.25rem; /* 20px */
+  --text-h2: clamp(1.625rem, 2.6vw, 2.125rem); /* 26 -> 34px */
+  --text-stat: clamp(2rem, 3.6vw, 2.75rem); /* 32 -> 44px */
+  --text-display: clamp(2.5rem, 5.5vw, 4rem); /* 40 -> 64px */
 
-  /* The one surviving rule token: contact-form inputs only. Everything
-     else on the page floats on black with whitespace alone. */
-  --color-field-rule: color-mix(in oklch, var(--color-bone-white) 22%, transparent);
-
-  --font-display: 'Switzer', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-body: 'Switzer', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-
-  /* Type scale — fluid, anchored so the max equals DESIGN.md's stated
-     px. Tracking is -0.04em across every size DESIGN.md lists (113 / 78
-     / 42px all resolve to the same -0.04em), so one token covers the
-     whole display range and survives the clamp. */
   --tracking-display: -0.04em;
-  --tracking-tight: -0.02em;
-  --tracking-label: 0.025em;
+  --tracking-heading: -0.025em;
 
-  --text-caption: 0.75rem; /* 12px */
-  --text-nav-label: 0.875rem; /* 14px */
-  --text-body: 1.125rem; /* 18px */
-  --text-heading-2xs: 1.5rem; /* 24px */
-  --text-heading-xs: 1.6875rem; /* 27px */
-  --text-subheading: clamp(1.5rem, 2.6vw, 2.25rem); /* 24 -> 36px */
-  --text-heading-sm: clamp(1.875rem, 3.4vw, 2.625rem); /* 30 -> 42px */
-  --text-heading: clamp(2rem, 4vw, 3rem); /* 32 -> 48px */
-  --text-heading-lg: clamp(2.5rem, 6vw, 4.875rem); /* 40 -> 78px */
-  --text-display: clamp(3rem, 8.5vw, 7.0625rem); /* 48 -> 113px */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
 
-  /* Weights — 400 carries every heading (never bold: hierarchy is scale
-     + tracking, not weight). 200 is the body signature. 600 is
-     nav/labels. */
-  --font-weight-extralight: 200;
-  --font-weight-regular: 400;
-  --font-weight-semibold: 600;
+  --shell-max: 1120px;
+  --shell-pad: clamp(16px, 4vw, 56px);
+  --section-pad: clamp(48px, 7vh, 80px);
+  --header-h: 64px;
 
-  /* Spacing — 6px base unit. */
-  --spacing-6: 6px;
-  --spacing-12: 12px;
-  --spacing-18: 18px;
-  --spacing-24: 24px;
-  --spacing-30: 30px;
-  --spacing-36: 36px;
-  --spacing-60: 60px;
-  --spacing-96: 96px;
-  --spacing-120: 120px;
-
-  --shell-max: 1280px;
-  --shell-pad: clamp(20px, 5vw, 56px);
-  --section-pad: clamp(60px, 9vh, 120px);
-
-  --radius-3xl: 24px;
-  --radius-full: 9999px;
+  --radius: 6px;
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-short: 200ms;
+}
 
-  --dur-micro: 120ms;
-  --dur-short: 220ms;
-  --dur-long: 420ms;
+/* Dark theme: same hierarchy, inverted. Applied by an explicit choice, or by
+   the system setting when the reader has not picked one. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-paper: #0a0a0a;
+  --color-surface: #111111;
+  --color-rule: #262626;
+  --color-rule-strong: #6f6f6f;
+  --color-ink: #ededed;
+  --color-ink-2: #a1a1a1;
+  --color-ink-3: #8f8f8f;
+  --color-accent: #3fb950;
+  --color-danger: #ff7b72;
+  --color-on-ink: #0a0a0a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --color-paper: #0a0a0a;
+    --color-surface: #111111;
+    --color-rule: #262626;
+    --color-rule-strong: #6f6f6f;
+    --color-ink: #ededed;
+    --color-ink-2: #a1a1a1;
+    --color-ink-3: #8f8f8f;
+    --color-accent: #3fb950;
+    --color-danger: #ff7b72;
+    --color-on-ink: #0a0a0a;
+  }
 }
 
 *,
@@ -121,19 +103,18 @@ body {
 
 html {
   scroll-behavior: smooth;
-  /* Nav bar height + breathing room, so anchors never land under it. */
-  scroll-padding-top: 84px;
+  /* Sticky header height plus breathing room, so anchors never land under it. */
+  scroll-padding-top: calc(var(--header-h) + 16px);
 }
 
 body {
   margin: 0;
-  background: var(--color-void);
-  color: var(--color-silver-mist);
+  background: var(--color-paper);
+  color: var(--color-ink-2);
   font-family: var(--font-body);
   font-size: var(--text-body);
-  font-weight: var(--font-weight-extralight);
-  line-height: 1.5;
-  font-feature-settings: 'ss01' 1;
+  font-weight: var(--weight-regular);
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -142,30 +123,30 @@ body {
 h1,
 h2,
 h3,
+h4,
 p,
+ul,
+ol,
+dl,
+dd,
 figure,
 blockquote {
   margin: 0;
 }
 
-/* Links inherit white — violet is a fill color (buttons, logo, accents),
-   never a link color, per DESIGN.md's Don'ts. Amber is for emphasis. */
+h1,
+h2,
+h3,
+h4 {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-weight: var(--weight-medium);
+}
+
 a {
   color: inherit;
   text-decoration: none;
   transition: color var(--dur-short) var(--ease-out);
-}
-
-a:hover {
-  color: var(--color-bone-white);
-}
-
-.link--emphasis {
-  color: var(--color-saffron-spark);
-}
-
-.link--emphasis:hover {
-  color: var(--color-bone-white);
 }
 
 img {
@@ -185,15 +166,14 @@ button {
 }
 
 ::selection {
-  background: var(--color-electric-iris);
-  color: var(--color-accent-ink);
+  background: var(--color-ink);
+  color: var(--color-on-ink);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-focus);
+  outline: 2px solid var(--color-ink);
   outline-offset: 3px;
-  border-radius: 3px;
-  transition: none;
+  border-radius: 2px;
 }
 
 /* --------------------------------------------------------------------------
@@ -206,103 +186,162 @@ button {
   padding-inline: var(--shell-pad);
 }
 
-.eyebrow {
-  font-family: var(--font-display);
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--text-nav-label);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--color-saffron-spark);
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  letter-spacing: 0;
 }
 
-.eyebrow--muted {
-  color: var(--color-ash-gray);
+/* Inline text link: ink with an underline that turns green on hover. */
+.link {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-decoration-color: var(--color-rule-strong);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition:
+    color var(--dur-short) var(--ease-out),
+    text-decoration-color var(--dur-short) var(--ease-out);
 }
 
-/* Primary Action Button — filled violet pill, the sole interactive CTA.
-   Reserved for one per view (DESIGN.md Don'ts); demote a second button
-   to .btn--ghost. */
+.link:hover {
+  color: var(--color-accent);
+  text-decoration-color: currentColor;
+}
+
+/* Standalone links are short words in mono or small text; the invisible
+   pseudo-element grows the tap target past 40px without moving the layout. */
+.link {
+  position: relative;
+}
+
+.link::after {
+  content: '';
+  position: absolute;
+  inset: -11px -4px;
+}
+
+/* One filled button per view; everything else is outlined. */
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5em;
-  white-space: nowrap;
   min-height: 44px;
-  border: none;
+  padding: 10px 18px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
   font-family: var(--font-display);
-  font-size: var(--text-nav-label);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: 1.2;
+  white-space: nowrap;
   transition:
     background-color var(--dur-short) var(--ease-out),
-    color var(--dur-short) var(--ease-out),
-    transform 100ms var(--ease-out);
-}
-
-.btn:active {
-  transform: translateY(1px);
+    border-color var(--dur-short) var(--ease-out),
+    color var(--dur-short) var(--ease-out);
 }
 
 .btn--solid {
-  padding: 14.4px 15.96px;
-  background: var(--color-electric-iris);
-  color: var(--color-accent-ink);
-  border-radius: var(--radius-3xl);
+  background: var(--color-ink);
+  color: var(--color-on-ink);
 }
 
 .btn--solid:hover {
-  background: var(--color-electric-iris-text);
-  color: var(--color-accent-ink);
+  background: var(--color-ink-2);
 }
 
-/* Ghost Text Button — no background, no border; hierarchy comes from
-   weight and tracking alone. */
-.btn--ghost {
-  padding: 0;
-  min-height: 0;
-  background: none;
-  color: var(--color-bone-white);
-}
-
-.btn--ghost:hover {
-  color: var(--color-saffron-spark);
-}
-
-.pill {
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
-  color: var(--color-silver-mist);
-}
-
-.bullets {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: var(--text-nav-label);
-  line-height: 1.7;
-  /* Bone white, not silver: these bullets are primary content, and
-     DESIGN.md lists bone white for body text (silver mist is reserved for
-     tertiary, caption-level copy). */
+.btn--outline {
+  border-color: var(--color-rule-strong);
   color: var(--color-ink);
 }
 
-.bullets li {
-  display: flex;
-  gap: 0.75rem;
+.btn--outline:hover {
+  border-color: var(--color-ink);
 }
 
-.bullets li::before {
-  content: '▸';
-  color: var(--color-saffron-spark);
+.status-dot {
+  display: inline-block;
   flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 18%, transparent);
 }
 
-.bullets--soft li::before {
-  color: var(--color-ash-gray);
+/* The page's section frame: a hairline across the top, the numbered label in
+   the left margin, content on the right. Stacks on narrow screens. */
+.section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+  padding-block: var(--section-pad);
+  border-top: 1px solid var(--color-rule);
+}
+
+@media (min-width: 60rem) {
+  .section {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 9fr);
+    gap: 32px;
+  }
+}
+
+/* Key/value rows with hairlines: working details, skills, credentials. */
+.spec {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-rule);
+}
+
+.spec__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px 24px;
+  padding-block: 11px;
+  border-bottom: 1px solid var(--color-rule);
+}
+
+@media (min-width: 40rem) {
+  .spec__row {
+    grid-template-columns: minmax(0, 11rem) minmax(0, 1fr);
+  }
+}
+
+.spec__key {
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  color: var(--color-ink-3);
+  padding-top: 2px;
+}
+
+.spec__value {
+  color: var(--color-ink);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.list li {
+  position: relative;
+  padding-left: 18px;
+}
+
+.list li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.8em;
+  width: 7px;
+  height: 1px;
+  background: var(--color-ink-3);
 }
 
 .skip-link {
@@ -311,18 +350,15 @@ button {
   top: -100px;
   z-index: 100;
   padding: 10px 16px;
-  border-radius: var(--radius-3xl);
-  background: var(--color-electric-iris);
-  color: var(--color-accent-ink);
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  border-radius: var(--radius);
+  background: var(--color-ink);
+  color: var(--color-on-ink);
+  font-size: var(--text-sm);
   transition: top var(--dur-short) var(--ease-out);
 }
 
 .skip-link:focus-visible {
   top: 12px;
-  color: var(--color-accent-ink);
 }
 
 /* Visually hidden but available to assistive tech. */
@@ -339,17 +375,18 @@ button {
 }
 
 /* --------------------------------------------------------------------------
-   Ambient CSS animation (Motion handles everything state-driven)
+   Load sequence for the hero (CSS only; GSAP handles scroll reveals)
 -------------------------------------------------------------------------- */
-@keyframes caret-blink {
-  0%,
-  45% {
-    opacity: 1;
-  }
-  50%,
-  100% {
+@keyframes rise-in {
+  from {
     opacity: 0;
+    transform: translateY(8px);
   }
+}
+
+.rise {
+  animation: rise-in 0.6s var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -362,6 +399,7 @@ button {
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
     transition-duration: 0.01ms !important;
   }
 }

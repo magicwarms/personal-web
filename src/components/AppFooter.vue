@@ -5,45 +5,51 @@ import { profile } from '@/data/portfolio'
 <template>
   <footer class="footer">
     <div class="shell footer__inner">
-      <span>{{ profile.name }} — Senior Backend Engineer</span>
-      <span class="footer__status">
-        <span class="footer__pulse" aria-hidden="true"></span>
-        {{ profile.availability }}
-      </span>
+      <p class="footer__who">
+        <span class="status-dot" aria-hidden="true"></span>
+        {{ profile.name }} · {{ profile.location }} · {{ profile.availability }}
+      </p>
+      <ul class="footer__links">
+        <li><a class="link" :href="profile.cv" download>Download CV (PDF)</a></li>
+        <li><a class="link" href="#top">Back to top</a></li>
+      </ul>
     </div>
   </footer>
 </template>
 
 <style scoped>
 .footer {
-  position: relative;
+  border-top: 1px solid var(--color-rule);
 }
 
 .footer__inner {
-  padding-block: 48px 32px;
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px 24px;
   justify-content: space-between;
   align-items: center;
-  font-family: var(--font-display);
-  font-weight: var(--font-weight-regular);
-  font-size: 0.8125rem;
-  letter-spacing: var(--tracking-tight);
+  padding-block: 28px 36px;
+  font-size: var(--text-sm);
   color: var(--color-ink-3);
 }
 
-.footer__status {
+.footer__who {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
-.footer__pulse {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  animation: caret-blink 2.4s ease-in-out infinite;
+.footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  padding: 0;
+  list-style: none;
+}
+
+.footer__links .link {
+  display: inline-block;
+  padding-block: 6px;
+  color: var(--color-ink-2);
 }
 </style>

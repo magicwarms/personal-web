@@ -1,14 +1,17 @@
 # Andhana Utama — Portfolio
 
-Personal site for Andhana Utama, Senior Backend Engineer and Technical Lead.
-Ported from a Claude Design project into a Vue 3 single-page site.
+Personal site for Andhana Utama, Senior Backend Engineer and Technical Lead,
+built for recruiters and hiring managers. Design direction lives in
+[DESIGN.md](DESIGN.md).
 
 ## Stack
 
-- **Vue 3** (`<script setup>`, TypeScript, strict)
+- **Vue 3** (`<script setup>`, TypeScript, strict), prerendered to static HTML at
+  build time and hydrated in the browser
 - **Vite** for dev server and build
-- **[Motion for Vue](https://motion.dev/docs/vue)** (`motion-v`) for every state-driven animation
-- Plain CSS with design tokens — no UI framework, no CSS-in-JS
+- **GSAP** (ScrollTrigger) for scroll reveals and the earlier-roles accordion;
+  the hero and system diagram animate in plain CSS
+- Plain CSS with design tokens and a light/dark theme — no UI framework, no CSS-in-JS
 - **Express + nodemailer** for the contact form endpoint (see [Contact form](#contact-form)),
   with `helmet` for CSP and security headers and `compression` for gzip
 - Shipped as a single container — see [DEPLOY.md](DEPLOY.md)
@@ -19,7 +22,7 @@ Ported from a Claude Design project into a Vue 3 single-page site.
 npm install
 cp .env.example .env   # then fill in the SMTP values
 npm run dev            # Vite on :5173 + API on :3000, together
-npm run build          # typecheck + SPA into dist/ + API into dist-server/
+npm run build          # typecheck + SPA into dist/ + prerender + API into dist-server/
 npm start              # production: serves dist/ and the API on one origin
 npm run typecheck      # vue-tsc + tsc over server/
 ```
@@ -74,7 +77,9 @@ SMTP round trip, so a briefly unreachable mail provider cannot cause restarts.
 Dockerfile          multi-stage build; runtime image carries no secrets
 docker-compose.yml  runs the production image locally against the real .env
 DEPLOY.md           Dokploy deployment, secrets handling, troubleshooting
+public/             favicon, robots.txt, sitemap.xml, theme-init.js (pre-paint theme)
 public/assets/      portrait + CV PDF served as-is
+scripts/prerender.mjs  writes the server-rendered page into dist/index.html
 server/             contact API — never imported by src/
   index.ts          app wiring, helmet/CSP, rate limit, static SPA, /api/health
   env.ts            required env vars, validated at boot
@@ -82,37 +87,42 @@ server/             contact API — never imported by src/
   validate.ts       payload validation + honeypot check
   routes/contact.ts POST /api/contact
 src/
-  data/             all copy and code samples — edit content here, not in components
-  motion/presets.ts shared easing, transitions, variants and viewport config
-  composables/      useCycle (auto-advancing index), usePrefersReducedMotion
+  data/portfolio.ts all copy — edit content here, not in components
+  motion/gsap.ts    GSAP plugin registration and shared easing
+  composables/      useSectionMotion (reveal lifecycle), useTheme (light/dark)
   components/       one component per section, plus ui/ primitives
+  entry-server.ts   build-time render entry used by the prerender step
   styles/base.css   design tokens, resets, shared primitives
 ```
 
-Content lives in `src/data/portfolio.ts` and `src/data/snippets.ts`. Components
-are presentational: changing a job, a project, or a stack chip means editing
-data, not markup.
+Content lives in `src/data/portfolio.ts`, and every number in it comes from
+the CV in `public/assets/`. Components are presentational: changing a job, a
+project, or a skill means editing data, not markup.
+
+## SEO
+
+- The page is prerendered, so crawlers and link-preview bots that do not run
+  JavaScript still get the full content.
+- `index.html` carries the title, description, canonical URL, Open Graph and
+  Twitter tags, and a JSON-LD `ProfilePage`/`Person` block. Keep it in sync with
+  `src/data/portfolio.ts` when the copy changes.
+- `robots.txt` and `sitemap.xml` are in `public/`. Paths other than `/` return
+  404 with the page, so stray URLs are not indexed as duplicates.
 
 ## Animation notes
 
-- `MotionConfig` sets `reducedMotion="user"`, so transform animations follow the
-  OS setting. Ambient CSS animation is disabled in the same case via
-  `prefers-reduced-motion` in `base.css`.
-- Scroll reveals run once, through `RevealItem` (or `revealProps` where a
-  different element is needed), keeping viewport config in one place.
-- Rows that sit on 1px hairline grids animate their contents rather than
-  themselves, so the seams never open up mid-animation.
-- Auto-cycling (hero role stack, code panel) pauses on hover, focus and hidden
-  tabs, stops permanently once the visitor picks a tab, and never starts when
-  reduced motion is requested.
+- Reduced motion is honoured everywhere: `useSectionMotion` builds the static
+  end state instead of the reveal, and `base.css` collapses the CSS animations.
+- Scroll reveals run once, through `RevealItem`. Blocks already on screen at
+  load are not hidden, so the prerendered page never blinks.
+- The hero diagram pauses its traffic animation while offscreen.
 
 ## Accessibility
 
 - Skip link, landmark elements, one `h1`, ordered headings, `aria-labelledby`
   on each section.
-- The cycling hero headline exposes a single stable accessible name; the
-  animated stack is `aria-hidden`.
-- Code samples use the WAI-ARIA tabs pattern with roving focus and arrow keys.
+- Light and dark themes both meet WCAG AA contrast; the theme toggle keeps its
+  visible label inside its accessible name.
 - The earlier-roles toggle uses `aria-expanded`/`aria-controls` against an
   element that is always present in the DOM.
 - Contact form has real labels, native validation, and a polite live region that

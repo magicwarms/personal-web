@@ -1,289 +1,164 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import SectionHeading from './ui/SectionHeading.vue'
-import { SplitText, gsap } from '@/motion/gsap'
-import { useSectionMotion } from '@/composables/useSectionMotion'
-import { projects } from '@/data/portfolio'
-
-const root = ref<HTMLElement | null>(null)
-
-useSectionMotion(
-  root,
-  ({ isDesktop, reduceMotion }) => {
-    const el = root.value
-    if (!el) return
-
-    const q = gsap.utils.selector(el)
-    const rows = q<HTMLElement>('.work__row')
-
-    if (reduceMotion) {
-      gsap.set(
-        q('.work__index-inner, .work__title, .work__org, .work__stack, .work__bullets li'),
-        { autoAlpha: 1, clearProps: 'transform' },
-      )
-      gsap.set(q('.work__glyph'), { autoAlpha: 0 })
-      return
-    }
-
-    /** DOM listeners are not GSAP's to clean up, so we unwind them by hand. */
-    const teardown: Array<() => void> = []
-
-    rows.forEach((row) => {
-      const title = row.querySelector<HTMLElement>('.work__title')
-      const indexInner = row.querySelector<HTMLElement>('.work__index-inner')
-      if (!title) return
-
-      const timeline = gsap.timeline({
-        scrollTrigger: { trigger: row, start: 'top 78%', once: true },
-      })
-
-      timeline
-        .to(indexInner, { yPercent: 0, autoAlpha: 1, duration: 0.6 }, 0)
-        .to(row.querySelectorAll('.work__org, .work__stack'), {
-          autoAlpha: 1,
-          x: 0,
-          duration: 0.5,
-          stagger: 0.05,
-        }, 0.45)
-        .to(row.querySelectorAll('.work__bullets li'), {
-          autoAlpha: 1,
-          y: 0,
-          duration: 0.5,
-          stagger: 0.05,
-        }, 0.55)
-
-      // The signature move: the title wipes up character by character from
-      // behind per-character masks.
-      SplitText.create(title, {
-        type: 'words,chars',
-        mask: 'chars',
-        autoSplit: true,
-        onSplit(self) {
-          gsap.set(title, { autoAlpha: 1 })
-
-          if (isDesktop) attachHover(row, self.chars, indexInner, teardown)
-
-          return timeline.fromTo(
-            self.chars,
-            { yPercent: 110 },
-            { yPercent: 0, duration: 0.7, ease: 'power3.out', stagger: { each: 0.014, from: 'start' } },
-            0.1,
-          )
-        },
-      })
-    })
-
-    if (isDesktop) {
-      // Reading-line focus: rows brighten as they reach the middle of the
-      // viewport and recede again on the way out, so the page reads one
-      // project at a time instead of presenting all of them at once.
-      //
-      // The floor is 0.8, not something more dramatic: this dims real body
-      // copy, and anything lower drops white text under the contrast ratio
-      // it needs to stay readable. Depth is not worth an unreadable
-      // paragraph.
-      rows.forEach((row) => {
-        gsap
-          .timeline({
-            scrollTrigger: { trigger: row, start: 'top bottom', end: 'bottom top', scrub: 0.5 },
-          })
-          .fromTo(row, { autoAlpha: 0.8 }, { autoAlpha: 1, ease: 'none', duration: 1 })
-          .to(row, { autoAlpha: 0.8, ease: 'none', duration: 1 })
-      })
-
-      // A single satellite tracking down the margin — the constellation
-      // language again, and a moving mark rather than a rule, so it stays
-      // clear of DESIGN.md's no-dividers constraint.
-      const glyph = q('.work__glyph')
-      gsap.set(glyph, { autoAlpha: 1 })
-      gsap.fromTo(
-        glyph,
-        { yPercent: 0 },
-        {
-          yPercent: 100,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: q('.work'),
-            start: 'top 60%',
-            end: 'bottom 80%',
-            scrub: 0.5,
-          },
-        },
-      )
-    }
-
-    return () => teardown.forEach((off) => off())
-  },
-  (el) => {
-    const q = gsap.utils.selector(el)
-    gsap.set(q('.work__index-inner'), { yPercent: 110, autoAlpha: 0 })
-    gsap.set(q('.work__title'), { autoAlpha: 0 })
-    gsap.set(q('.work__org, .work__stack'), { autoAlpha: 0, x: -8 })
-    gsap.set(q('.work__bullets li'), { autoAlpha: 0, y: 10 })
-    gsap.set(q('.work__glyph'), { autoAlpha: 0 })
-  },
-)
-
-/**
- * Built once and paused, then played and reversed — creating tweens inside
- * the pointer handler is what makes this pattern stutter.
- */
-function attachHover(
-  row: HTMLElement,
-  chars: Element[],
-  indexInner: HTMLElement | null,
-  teardown: Array<() => void>,
-) {
-  const hover = gsap.timeline({ paused: true })
-  if (indexInner) hover.to(indexInner, { x: 4, duration: 0.3 }, 0)
-  hover.to(chars, { y: -3, duration: 0.3, stagger: { each: 0.012, from: 'start' } }, 0)
-
-  const enter = () => hover.play()
-  const leave = () => hover.reverse()
-
-  row.addEventListener('mouseenter', enter)
-  row.addEventListener('mouseleave', leave)
-  teardown.push(() => {
-    row.removeEventListener('mouseenter', enter)
-    row.removeEventListener('mouseleave', leave)
-    hover.kill()
-  })
-}
+import RevealItem from './ui/RevealItem.vue'
+import { earlierProjects, projects } from '@/data/portfolio'
 </script>
 
 <template>
-  <section ref="root" id="work" class="section" aria-labelledby="work-heading">
-    <SectionHeading id="work-heading" title="Selected work" />
+  <section id="work" class="section" aria-labelledby="work-heading">
+    <SectionHeading id="work-heading" index="01" title="Selected work" />
 
     <div class="work">
-      <span class="work__glyph" aria-hidden="true">
-        <svg viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <polygon points="6,1 11,10 1,10" stroke="var(--color-accent)" stroke-width="1.5" stroke-linejoin="round" />
-        </svg>
-      </span>
-
-      <article
+      <!-- The most recent, most senior project leads on a raised surface;
+           the rest are denser rows. Hierarchy follows recency and scope. -->
+      <RevealItem
         v-for="project in projects"
         :key="project.id"
-        class="work__item"
+        as="article"
+        class="case"
+        :class="{ 'case--featured': project.featured }"
         :aria-labelledby="`${project.id}-title`"
       >
-        <!-- The reveal moves the row's contents, not the row itself, so the
-             grid rhythm between rows never shifts mid-animation. -->
-        <div class="work__row">
-          <div class="work__index" aria-hidden="true">
-            <span class="work__index-inner">{{ project.index }}</span>
+        <p class="case__meta mono">
+          <span>{{ project.index }}</span>
+          <span>{{ project.org }}</span>
+          <span>{{ project.period }}</span>
+          <span>{{ project.role }}</span>
+        </p>
+
+        <h3 :id="`${project.id}-title`" class="case__title">{{ project.title }}</h3>
+        <p class="case__summary">{{ project.summary }}</p>
+
+        <div class="case__lists">
+          <div v-if="project.did?.length">
+            <h4 class="case__label mono">What I did</h4>
+            <ul class="list case__list" :class="{ 'case__list--split': project.did.length >= 4 }">
+              <li v-for="item in project.did" :key="item">{{ item }}</li>
+            </ul>
           </div>
 
-          <div>
-            <h3 :id="`${project.id}-title`" class="work__title">{{ project.title }}</h3>
-
-            <p class="work__meta">
-              <span class="work__org">{{ project.org }}</span>
-              <span class="work__stack">{{ project.stack }}</span>
-            </p>
-
-            <ul class="bullets work__bullets">
-              <li v-for="highlight in project.highlights" :key="highlight">{{ highlight }}</li>
+          <div v-if="project.results?.length">
+            <h4 class="case__label mono">Result</h4>
+            <ul class="list case__list" :class="{ 'case__list--split': project.results.length >= 4 }">
+              <li v-for="item in project.results" :key="item">{{ item }}</li>
             </ul>
           </div>
         </div>
-      </article>
+
+        <p v-if="project.stack?.length" class="case__stack mono">
+          <span class="sr-only">Stack: </span>{{ project.stack.join(' · ') }}
+        </p>
+      </RevealItem>
+
+      <RevealItem class="earlier">
+        <h3 class="case__label mono">Earlier projects</h3>
+        <ul class="spec">
+          <li v-for="item in earlierProjects" :key="item.id" class="spec__row">
+            <span class="spec__key">{{ item.period }}</span>
+            <span class="spec__value">
+              {{ item.title }}
+              <span class="earlier__client">for {{ item.client }}</span>
+            </span>
+          </li>
+        </ul>
+      </RevealItem>
     </div>
   </section>
 </template>
 
 <style scoped>
-.section {
-  padding-top: var(--section-pad);
-}
-
 .work {
-  position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-96);
-  margin-top: 48px;
 }
 
-.work__glyph {
-  display: none;
+.case {
+  padding-block: 24px;
+  border-bottom: 1px solid var(--color-rule);
 }
 
-/* Only shown once the shell has real margin outside it to place the glyph
-   in; below this width there is nowhere for it to go that isn't content. */
-@media (min-width: 75rem) {
-  .work__glyph {
-    display: block;
-    position: absolute;
-    top: 0;
-    left: -34px;
-    width: 12px;
-    height: calc(100% - 12px);
-    pointer-events: none;
-  }
-
-  .work__glyph svg {
-    width: 12px;
-    height: 12px;
-    opacity: 0.7;
-  }
+.case:first-child {
+  padding-top: 0;
 }
 
-.work__item {
-  padding: 0 clamp(4px, 2vw, 28px);
+.case--featured {
+  padding: 24px;
+  margin-bottom: 8px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius);
 }
 
-.work__row {
-  display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
-  gap: clamp(12px, 3vw, 32px);
+.case--featured:first-child {
+  padding-top: 24px;
 }
 
-.work__index {
-  /* Clips the index while it slides up into place. */
-  overflow: clip;
-  padding-top: 6px;
-}
-
-.work__index-inner {
-  display: block;
-  font-family: var(--font-display);
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--text-caption);
-  color: var(--color-saffron-spark);
-  letter-spacing: var(--tracking-label);
-}
-
-.work__title {
-  font-family: var(--font-display);
-  font-size: var(--text-heading-sm);
-  font-weight: var(--font-weight-regular);
-  letter-spacing: var(--tracking-tight);
-  color: var(--color-ink);
-  line-height: 1.15;
-}
-
-.work__meta {
-  margin-top: 14px;
+.case__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.02em;
-  line-height: 1.6;
-}
-
-.work__org {
-  color: var(--color-warn);
-}
-
-.work__stack {
+  gap: 4px 14px;
   color: var(--color-ink-3);
 }
 
-.work__bullets {
-  margin-top: 22px;
+.case__meta span:first-child {
+  color: var(--color-ink);
+}
+
+.case__title {
+  margin-top: 10px;
+  font-size: var(--text-h3);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.case--featured .case__title {
+  font-size: clamp(1.375rem, 2.2vw, 1.625rem);
+  letter-spacing: var(--tracking-heading);
+}
+
+.case__summary {
+  margin-top: 8px;
+  max-width: 60ch;
+}
+
+.case__lists {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.case__label {
+  margin-bottom: 10px;
+  font-weight: var(--weight-medium);
+  color: var(--color-ink);
+}
+
+.case__list {
+  font-size: var(--text-sm);
+  line-height: 1.55;
+}
+
+/* Long lists read as two short columns on wide screens instead of one tall
+   stack, which keeps each case study within about one screen. */
+@media (min-width: 48rem) {
+  .case__list--split {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 28px;
+  }
+}
+
+.case__stack {
+  margin-top: 20px;
+  color: var(--color-ink-3);
+}
+
+.earlier {
+  padding-top: 28px;
+}
+
+.earlier__client {
+  color: var(--color-ink-2);
 }
 </style>
