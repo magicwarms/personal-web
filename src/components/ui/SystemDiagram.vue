@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { ariaLabelFor, captionFor, edges, litFor, nodes } from '@/data/diagram'
-import { reduceActive } from '@/composables/diagramActive'
+import { reduceActiveDuring } from '@/composables/diagramActive'
 import type { ActiveAction } from '@/composables/diagramActive'
 import { useDiagramTrace } from '@/composables/useDiagramTrace'
 
@@ -43,10 +43,10 @@ const caption = computed(
 )
 
 function dispatch(action: ActiveAction) {
-  const next = reduceActive(activeId.value, action)
-  // Lighting a node is the reader taking over: stop the trace.
-  if (next !== null && trace.tracing.value) trace.cancel()
-  activeId.value = next
+  const result = reduceActiveDuring(activeId.value, action, trace.tracing.value)
+  // Deliberate input takes over from a trace; passive hover does not.
+  if (result.cancelTrace) trace.cancel()
+  activeId.value = result.active
 }
 
 const isNodeDim = (id: string) => lit.value !== null && !lit.value.nodes.has(id)
@@ -156,7 +156,6 @@ onBeforeUnmount(() => observer?.disconnect())
         role="button"
         tabindex="0"
         :aria-label="ariaLabelFor(node.id)"
-        :aria-pressed="activeId === node.id"
         @pointerenter="onPointerEnter($event, node.id)"
         @pointerleave="onPointerLeave($event, node.id)"
         @pointerdown="onPointerDown"
@@ -169,6 +168,16 @@ onBeforeUnmount(() => observer?.disconnect())
         <!-- Invisible 4px bleed, so a node stays at least 36px tall to a
              finger at the diagram's 375px-viewport size. -->
         <rect class="diagram__hit" :x="node.x - 4" :y="node.y - 4" :width="node.w + 8" :height="node.h + 8" />
+        <!-- Its own ring, 3px out: the box stroke is too close to the resting
+             stroke to show focus, most of all on the API node. -->
+        <rect
+          class="diagram__focus"
+          :x="node.x - 3"
+          :y="node.y - 3"
+          :width="node.w + 6"
+          :height="node.h + 6"
+          rx="8"
+        />
         <rect class="diagram__box" :x="node.x" :y="node.y" :width="node.w" :height="node.h" rx="5" />
         <template v-if="node.sub">
           <text :x="node.x + node.w / 2" :y="node.y + 20" class="diagram__label">{{ node.label }}</text>
@@ -263,17 +272,27 @@ onBeforeUnmount(() => observer?.disconnect())
   stroke: none;
 }
 
-/* The global outline does not follow an SVG group's shape; the box stroke does. */
+/* The global outline does not follow an SVG group's shape, so focus is a
+   dedicated ring around the box. */
 .diagram__node:focus-visible {
   outline: none;
 }
 
-.diagram__node:focus-visible .diagram__box {
+.diagram__focus {
+  fill: none;
   stroke: var(--color-ink);
   stroke-width: 2;
+  opacity: 0;
+  pointer-events: none;
 }
 
-.diagram__node--active .diagram__box {
+.diagram__node:focus-visible .diagram__focus {
+  opacity: 1;
+}
+
+/* Both classes, so the API node (--core) also turns green when it is active. */
+.diagram__node--active .diagram__box,
+.diagram__node--core.diagram__node--active .diagram__box {
   stroke: var(--color-accent);
 }
 

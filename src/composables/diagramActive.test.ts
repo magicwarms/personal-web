@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { reduceActive } from './diagramActive'
+import { reduceActive, reduceActiveDuring } from './diagramActive'
 import type { ActiveAction } from './diagramActive'
 
 const run = (actions: ActiveAction[], start: string | null = null) =>
@@ -36,9 +36,10 @@ test('keyboard focus highlights and tabbing moves it', () => {
   )
 })
 
-test('Enter or Space toggles', () => {
+test('Enter or Space lights the node and keeps a lit node lit', () => {
   assert.equal(run([{ type: 'press', id: 'api' }]), 'api')
-  assert.equal(run([{ type: 'press', id: 'api' }], 'api'), null)
+  // Keyboard focus already lit it; the first activation must not undo that.
+  assert.equal(run([{ type: 'press', id: 'api' }], 'api'), 'api')
 })
 
 test('hover sets and leaving clears, but only for the same node', () => {
@@ -50,4 +51,44 @@ test('hover sets and leaving clears, but only for the same node', () => {
 
 test('clear always resets', () => {
   assert.equal(run([{ type: 'clear' }], 'api'), null)
+})
+
+test('hover, unhover and mouse-style focus are ignored while a trace plays', () => {
+  const ignored: ActiveAction[] = [
+    { type: 'hover', id: 'redis' },
+    { type: 'unhover', id: 'redis' },
+    { type: 'blur', id: 'redis' },
+    { type: 'focus', id: 'redis', keyboard: false },
+  ]
+  for (const action of ignored) {
+    assert.deepEqual(reduceActiveDuring(null, action, true), { active: null, cancelTrace: false }, action.type)
+  }
+})
+
+test('a tap on the already-active node during a trace keeps it lit and ends the trace', () => {
+  assert.deepEqual(reduceActiveDuring('redis', { type: 'tap', id: 'redis' }, true), {
+    active: 'redis',
+    cancelTrace: true,
+  })
+})
+
+test('keyboard focus, press, tap and clear take over from a trace', () => {
+  assert.deepEqual(reduceActiveDuring(null, { type: 'focus', id: 'api', keyboard: true }, true), {
+    active: 'api',
+    cancelTrace: true,
+  })
+  assert.deepEqual(reduceActiveDuring(null, { type: 'press', id: 'api' }, true), { active: 'api', cancelTrace: true })
+  assert.deepEqual(reduceActiveDuring(null, { type: 'tap', id: 'api' }, true), { active: 'api', cancelTrace: true })
+  assert.deepEqual(reduceActiveDuring('api', { type: 'clear' }, true), { active: null, cancelTrace: true })
+})
+
+test('outside a trace it defers to reduceActive and never cancels', () => {
+  assert.deepEqual(reduceActiveDuring(null, { type: 'hover', id: 'redis' }, false), {
+    active: 'redis',
+    cancelTrace: false,
+  })
+  assert.deepEqual(reduceActiveDuring('redis', { type: 'tap', id: 'redis' }, false), {
+    active: null,
+    cancelTrace: false,
+  })
 })

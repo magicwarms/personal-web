@@ -183,7 +183,7 @@ At reference strength, text cannot sit on dots. Text blocks get a plain paper fi
 ### Highlight
 
 - Reactive `activeId: string | null`, default `null` (prerender and hydration match).
-- Set by mouse `pointerenter`, by keyboard focus (`:focus-visible` only), by tap (tap toggles), and by Enter or Space (toggles). Cleared by mouse `pointerleave`, `blur`, a click on empty diagram space, and `Escape`.
+- Set by mouse `pointerenter`, by keyboard focus (`:focus-visible` only), by tap (tap toggles), and by Enter or Space (keeps the node lit, since keyboard focus already lit it). Cleared by mouse `pointerleave`, `blur`, a click on empty diagram space, and `Escape`.
 - The rules live in a pure reducer, `reduceActive(current, action)` in `src/composables/diagramActive.ts`, with unit tests. The case it exists for: a tap focuses a `tabindex` element and then clicks it, so if any focus highlighted and the click toggled, every tap would switch the highlight on and straight back off.
 - Lit set = the active node, its edges, and its neighbors from `buildNeighbors`. Everything else gets `--dim` (opacity 0.35). Transition 200 ms, `var(--ease-out)`. The opacity goes on each node's `rect` and `text`, not the `<g>`: the `<g>` holds the `diagram-fade` animation with `fill-mode: both`, which would fight an opacity set on the same element.
 - Looping pulses run only on lit edges while a node is active.
@@ -203,7 +203,7 @@ At reference strength, text cannot sit on dots. Text blocks get a plain paper fi
   4. `api-rabbitmq`
   5. `rabbitmq-fcm`
 - A GSAP timeline animates a short green dash along each step's edges (`strokeDashoffset` on dedicated `diagram__trace` paths), lighting each node as the dash arrives. About 3 s total, then a 0.6 s hold, then back to the idle state.
-- Looping pulses pause during the trace. Pressing the button again restarts it. Activating a node cancels it.
+- Looping pulses pause during the trace. Pressing the button again restarts it. Deliberate input (tap, Enter or Space, keyboard focus, Escape) cancels it and takes over; passive hover is ignored while it plays, because the button sits right under the diagram.
 - The caption names each hop as it plays ("API → Redis, PostgreSQL"), no other claims.
 - The GSAP context is scoped to the SVG and reverted on unmount.
 - Reduced motion: no moving dash; the whole trace path lights at once for 2 s.

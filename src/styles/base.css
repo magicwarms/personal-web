@@ -180,13 +180,21 @@ button {
    Shared primitives
 -------------------------------------------------------------------------- */
 
-/* How far a hairline has drawn in, 0 to 1. Registered as non-inheriting so a
-   section's value never leaks into the table rules inside it. At rest it is
-   1: without JavaScript every rule is simply there. */
+/* How far a hairline has drawn in, 0 to 1. It must inherit: the rules are
+   ::before / ::after pseudo-elements, which only see their element's value
+   through inheritance. The reset on .section, .spec and .spec__row below stops
+   a section's value at the tables inside it. At rest it is 1: without
+   JavaScript every rule is simply there. */
 @property --draw {
   syntax: '<number>';
-  inherits: false;
+  inherits: true;
   initial-value: 1;
+}
+
+.section,
+.spec,
+.spec__row {
+  --draw: 1;
 }
 
 .shell {

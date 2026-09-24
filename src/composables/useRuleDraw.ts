@@ -1,14 +1,13 @@
 import type { Ref } from 'vue'
 import { REVEAL_START, ScrollTrigger, gsap } from '@/motion/gsap'
+import { hasPassed } from './ruleDrawMath'
 import { useSectionMotion } from './useSectionMotion'
 
 /** A section's rule fires just before its content rises in at REVEAL_START. */
 const SECTION_RULE_START = 'top 95%'
-const SECTION_RULE_LINE = 0.95
-const REVEAL_LINE = 0.9
 
-const isBelowFold = (el: HTMLElement) => el.getBoundingClientRect().top >= window.innerHeight
-const isPast = (el: HTMLElement, line: number) => el.getBoundingClientRect().top < window.innerHeight * line
+const isPast = (el: HTMLElement) => hasPassed(el.getBoundingClientRect().top, window.innerHeight)
+const isBelowFold = (el: HTMLElement) => !isPast(el)
 
 const draw = (batch: Element[]) => gsap.to(batch, { '--draw': 1, duration: 0.6, stagger: 0.04 })
 
@@ -33,8 +32,8 @@ export function useRuleDraw(root: Ref<HTMLElement | null>) {
         if (hidden.length) gsap.set(hidden, { '--draw': 1 })
         return
       }
-      schedule(sections, SECTION_RULE_START, SECTION_RULE_LINE)
-      schedule(tables, REVEAL_START, REVEAL_LINE)
+      schedule(sections, SECTION_RULE_START)
+      schedule(tables, REVEAL_START)
     },
     (el) => {
       sections = Array.from(el.querySelectorAll<HTMLElement>('.section')).filter(isBelowFold)
@@ -51,9 +50,9 @@ export function useRuleDraw(root: Ref<HTMLElement | null>) {
  * which reverts earlier tweens). Those draw immediately instead of waiting
  * for a trigger that already fired.
  */
-function schedule(targets: HTMLElement[], start: string, line: number) {
-  const passed = targets.filter((el) => isPast(el, line))
-  const pending = targets.filter((el) => !isPast(el, line))
+function schedule(targets: HTMLElement[], start: string) {
+  const passed = targets.filter(isPast)
+  const pending = targets.filter((el) => !isPast(el))
   if (passed.length) gsap.set(passed, { '--draw': 1 })
   if (pending.length) ScrollTrigger.batch(pending, { start, once: true, onEnter: draw })
 }

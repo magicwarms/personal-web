@@ -29,9 +29,44 @@ export function reduceActive(current: string | null, action: ActiveAction): stri
     case 'focus':
       return action.keyboard ? action.id : current
     case 'tap':
-    case 'press':
       return current === action.id ? null : action.id
+    case 'press':
+      // Keyboard focus already lit the node, so the first Enter or Space must
+      // not undo it; Escape or tabbing away clears.
+      return action.id
     case 'clear':
       return null
+  }
+}
+
+export interface ActiveResult {
+  active: string | null
+  /** The reader took over: stop the trace. */
+  cancelTrace: boolean
+}
+
+/**
+ * The same reducer while "Trace a request" may be playing. A trace owns the
+ * lighting, so passive input (hover, mouse-style focus, blur) is ignored: the
+ * button sits right under the diagram, and moving the pointer up to watch
+ * would otherwise cancel the trace at once. Deliberate input (a tap, Enter or
+ * Space, keyboard focus, Escape) ends it and takes over; a tap on the node that
+ * is already active keeps it lit instead of toggling it off under the trace.
+ */
+export function reduceActiveDuring(current: string | null, action: ActiveAction, tracing: boolean): ActiveResult {
+  if (!tracing) return { active: reduceActive(current, action), cancelTrace: false }
+
+  switch (action.type) {
+    case 'hover':
+    case 'unhover':
+    case 'blur':
+      return { active: current, cancelTrace: false }
+    case 'focus':
+      return action.keyboard ? { active: action.id, cancelTrace: true } : { active: current, cancelTrace: false }
+    case 'tap':
+    case 'press':
+      return { active: action.id, cancelTrace: true }
+    case 'clear':
+      return { active: null, cancelTrace: true }
   }
 }
