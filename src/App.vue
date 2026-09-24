@@ -2,6 +2,8 @@
 import AppHeader from './components/AppHeader.vue'
 import AppFooter from './components/AppFooter.vue'
 import SignalField from './components/ui/SignalField.vue'
+import { ref } from 'vue'
+import { useRuleDraw } from './composables/useRuleDraw'
 import HeroSection from './components/HeroSection.vue'
 import WorkSection from './components/WorkSection.vue'
 import ExperienceSection from './components/ExperienceSection.vue'
@@ -9,6 +11,9 @@ import AboutSection from './components/AboutSection.vue'
 import StackSection from './components/StackSection.vue'
 import CredentialsSection from './components/CredentialsSection.vue'
 import ContactSection from './components/ContactSection.vue'
+
+const main = ref<HTMLElement | null>(null)
+useRuleDraw(main)
 </script>
 
 <template>
@@ -23,7 +28,7 @@ import ContactSection from './components/ContactSection.vue'
   <div id="top" class="page">
     <AppHeader />
 
-    <main id="main" class="shell">
+    <main id="main" ref="main" class="shell">
       <HeroSection />
       <WorkSection />
       <ExperienceSection />

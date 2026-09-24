@@ -179,6 +179,16 @@ button {
 /* --------------------------------------------------------------------------
    Shared primitives
 -------------------------------------------------------------------------- */
+
+/* How far a hairline has drawn in, 0 to 1. Registered as non-inheriting so a
+   section's value never leaks into the table rules inside it. At rest it is
+   1: without JavaScript every rule is simply there. */
+@property --draw {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+
 .shell {
   width: 100%;
   max-width: var(--shell-max);
@@ -273,11 +283,11 @@ button {
 /* The page's section frame: a hairline across the top, the numbered label in
    the left margin, content on the right. Stacks on narrow screens. */
 .section {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 28px;
   padding-block: var(--section-pad);
-  border-top: 1px solid var(--color-rule);
 }
 
 @media (min-width: 60rem) {
@@ -296,19 +306,19 @@ button {
 
 /* Key/value rows with hairlines: working details, skills, credentials. */
 .spec {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   padding: 0;
   list-style: none;
-  border-top: 1px solid var(--color-rule);
 }
 
 .spec__row {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 4px 24px;
   padding-block: 11px;
-  border-bottom: 1px solid var(--color-rule);
 }
 
 @media (min-width: 40rem) {
@@ -326,6 +336,31 @@ button {
 
 .spec__value {
   color: var(--color-ink);
+}
+
+/* Section and table hairlines are pseudo-elements rather than borders so
+   they can draw in from the left (useRuleDraw tweens --draw). */
+.section::before,
+.spec::before,
+.spec__row::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--color-rule);
+  transform: scaleX(var(--draw, 1));
+  transform-origin: left;
+  pointer-events: none;
+}
+
+.section::before,
+.spec::before {
+  top: 0;
+}
+
+.spec__row::after {
+  bottom: 0;
 }
 
 .list {

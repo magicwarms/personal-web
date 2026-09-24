@@ -4,8 +4,9 @@ import { REVEAL_START, gsap } from '@/motion/gsap'
 import { useSectionMotion } from '@/composables/useSectionMotion'
 
 /**
- * The one scroll reveal on the page: a short settle as a block comes into
- * view, so the eye lands on new content. Nothing else moves on scroll.
+ * The block reveal on the page: a short settle as a block comes into view,
+ * so the eye lands on new content. Its hairlines draw in alongside it
+ * (useRuleDraw); the other scroll-linked motion is listed in DESIGN.md.
  */
 const props = withDefaults(
   defineProps<{
