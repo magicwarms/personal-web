@@ -1,10 +1,46 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useTheme } from '@/composables/useTheme'
+import { useActiveSection } from '@/composables/useActiveSection'
 import { navItems, profile } from '@/data/portfolio'
 
 const menuOpen = ref(false)
 const { theme, toggle: toggleTheme } = useTheme()
+const { activeId } = useActiveSection()
+
+/**
+ * The green bar under the active nav link. Position comes from the link's
+ * measured box, minus its padding, so the bar matches the text. It only
+ * starts animating after its first placement; otherwise it would slide in
+ * from the left edge on load.
+ */
+const links = ref<HTMLElement | null>(null)
+const indicator = ref({ x: 0, w: 0, visible: false })
+const indicatorReady = ref(false)
+const indicatorStyle = computed(() => ({
+  '--x': `${indicator.value.x}px`,
+  '--w': String(indicator.value.w),
+}))
+
+function placeIndicator() {
+  const id = activeId.value
+  const link = id ? links.value?.querySelector<HTMLElement>(`[data-nav="${id}"]`) : null
+  if (!link || link.offsetWidth === 0) {
+    indicator.value = { ...indicator.value, visible: false }
+    return
+  }
+  const style = getComputedStyle(link)
+  const padLeft = parseFloat(style.paddingLeft)
+  const padRight = parseFloat(style.paddingRight)
+  indicator.value = {
+    x: link.offsetLeft + padLeft,
+    w: link.offsetWidth - padLeft - padRight,
+    visible: true,
+  }
+  if (!indicatorReady.value) requestAnimationFrame(() => (indicatorReady.value = true))
+}
+
+watch(activeId, placeIndicator)
 
 /**
  * The hairline only appears once content is scrolling underneath. Starts
@@ -33,11 +69,15 @@ onMounted(() => {
   onScroll()
   window.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('keydown', onKeydown)
+  window.addEventListener('resize', placeIndicator)
+  // Web fonts change link widths; measure again once they are in.
+  document.fonts?.ready.then(placeIndicator)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', onScroll)
   window.removeEventListener('keydown', onKeydown)
+  window.removeEventListener('resize', placeIndicator)
 })
 </script>
 
@@ -50,8 +90,25 @@ onBeforeUnmount(() => {
         {{ profile.name }}<span class="sr-only">, back to top</span>
       </a>
 
-      <nav class="nav__links" aria-label="Sections">
-        <a v-for="item in navItems" :key="item.id" :href="`#${item.id}`">{{ item.label }}</a>
+      <nav ref="links" class="nav__links" aria-label="Sections">
+        <a
+          v-for="item in navItems"
+          :key="item.id"
+          :href="`#${item.id}`"
+          :data-nav="item.id"
+          :aria-current="activeId === item.id ? 'location' : undefined"
+        >
+          {{ item.label }}
+        </a>
+        <span
+          class="nav__indicator"
+          :class="{
+            'nav__indicator--visible': indicator.visible,
+            'nav__indicator--ready': indicatorReady,
+          }"
+          :style="indicatorStyle"
+          aria-hidden="true"
+        ></span>
       </nav>
 
       <!-- Shows the current theme; the hidden text names the action, and the
@@ -80,6 +137,7 @@ onBeforeUnmount(() => {
           :key="item.id"
           :href="`#${item.id}`"
           class="nav-sheet__link"
+          :aria-current="activeId === item.id ? 'location' : undefined"
           @click="closeMenu"
         >
           {{ item.label }}
@@ -143,6 +201,44 @@ onBeforeUnmount(() => {
 
 .nav__links a:hover {
   color: var(--color-ink);
+}
+
+.nav__links {
+  position: relative;
+}
+
+.nav__links a[aria-current='location'] {
+  color: var(--color-ink);
+}
+
+/* A 1px bar scaled to the link's width: transform-only, so moving it never
+   triggers layout. Fades out on sections that have no nav link. */
+.nav__indicator {
+  position: absolute;
+  left: 0;
+  bottom: 6px;
+  width: 1px;
+  height: 2px;
+  background: var(--color-accent);
+  transform: translateX(var(--x, 0)) scaleX(var(--w, 0));
+  transform-origin: left;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-short) var(--ease-out);
+}
+
+.nav__indicator--visible {
+  opacity: 1;
+}
+
+.nav__indicator--ready {
+  transition:
+    opacity var(--dur-short) var(--ease-out),
+    transform 300ms var(--ease-out);
+}
+
+.nav-sheet__link[aria-current='location'] {
+  color: var(--color-accent);
 }
 
 .nav__theme {
