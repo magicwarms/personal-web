@@ -81,7 +81,7 @@ export const profile = {
   title: "Senior Backend Engineer and Technical Lead",
   location: "Batam, Indonesia",
   timezone: "GMT+7",
-  email: "andhanautama@gmail.com",
+  email: "andhanautama[at]gmail.com",
   github: "https://github.com/magicwarms",
   linkedin: "https://linkedin.com/in/andhana-utama-4a2b1a130",
   cv: "/assets/CV-Andhana-Utama-2026.pdf",
@@ -90,18 +90,33 @@ export const profile = {
   workModes: "Remote, Batam (GMT+7), or relocation anywhere in the world",
   headline: "I build backend systems that scale and stay up.",
   intro:
-    "Senior backend engineer and technical lead. 11 years shipping Go and Node.js services for teams in Indonesia, Singapore, and Malaysia. Most recently I led the backend at Kirimfresh.id and put its customer-facing AI assistant into production.",
+    "Senior backend engineer and technical lead. 11 years shipping Go and Node.js services for teams in Indonesia, Singapore, and Malaysia. Most recently I led the team at Kirimfresh.id and put its customer-facing AI assistant into production.",
   about: [
-    "Most of my work sits behind the API: service design, message queues, caching, and the PostgreSQL queries underneath. As a tech lead I also set coding standards and API contracts, review code, mentor engineers, and connect engineering with the business side.",
+    "Most of my work sits behind the API: service design, message queues, caching, and the SQL and NoSQL queries underneath. As a tech lead I also set coding standards and API contracts, review code, mentor engineers, and connect engineering with the business side.",
     "I work AI-native. I use Claude Code across the development cycle and review its output critically instead of trusting it. I have shipped a customer-facing AI assistant to production and built a LangChain deep agent with tool-calling subagents.",
   ],
 } as const;
 
 export const proof: ProofPoint[] = [
-  { id: "years", value: "11+", label: "years building backends", source: "2015-2026" },
+  {
+    id: "years",
+    value: "11+",
+    label: "years building backends",
+    source: "2015-2026",
+  },
   { id: "downtime", value: "~30%", label: "less downtime", source: "TreeDots" },
-  { id: "coverage", value: "~90%", label: "test coverage, ~50% fewer regressions", source: "TreeDots" },
-  { id: "infra", value: "~30%", label: "lower annual infrastructure cost", source: "BrainPoolTech" },
+  {
+    id: "coverage",
+    value: "~90%",
+    label: "test coverage, ~50% fewer regressions",
+    source: "TreeDots",
+  },
+  {
+    id: "infra",
+    value: "~30%",
+    label: "lower annual infrastructure cost",
+    source: "BrainPoolTech",
+  },
 ];
 
 export const projects: Project[] = [
@@ -214,7 +229,8 @@ export const roles: Role[] = [
     company: "TreeDots Pte. Ltd.",
     location: "Remote, Singapore",
     period: "2022-2024",
-    scope: "Production stability, test automation, caching, and legacy refactoring.",
+    scope:
+      "Production stability, test automation, caching, and legacy refactoring.",
   },
   {
     id: "brainpooltech",
@@ -239,7 +255,8 @@ export const roles: Role[] = [
     company: "Infopro Mandiri Solusi",
     location: "Batam",
     period: "2019",
-    scope: "REST APIs that expanded integration capabilities. API response times ~20% faster.",
+    scope:
+      "REST APIs that expanded integration capabilities. API response times ~20% faster.",
     earlier: true,
   },
   {
@@ -248,7 +265,8 @@ export const roles: Role[] = [
     company: "Tellinet Teramedia Indonesia",
     location: "Batam",
     period: "2018",
-    scope: "Backend services and database query optimisation. Response times ~30% faster.",
+    scope:
+      "Backend services and database query optimisation. Response times ~30% faster.",
     earlier: true,
   },
   {
@@ -257,7 +275,8 @@ export const roles: Role[] = [
     company: "Little Blue Planet Indonesia",
     location: "Batam",
     period: "2017-2018",
-    scope: "Active Directory and Group Policy. Performance profiling cut memory use ~60%.",
+    scope:
+      "Active Directory and Group Policy. Performance profiling cut memory use ~60%.",
     earlier: true,
   },
   {
@@ -266,22 +285,38 @@ export const roles: Role[] = [
     company: "Proweb Media Indonesia",
     location: "Batam",
     period: "2015-2017",
-    scope: "Backend services and REST APIs for internal products. Resource use ~20% lower.",
+    scope:
+      "Backend services and REST APIs for internal products. Resource use ~20% lower.",
     earlier: true,
   },
 ];
 
 export const workDetails: Detail[] = [
   { label: "Based in", value: "Batam, Indonesia (GMT+7)" },
-  { label: "Open to", value: "Remote, hybrid or on-site in Batam, or relocation to any country" },
+  {
+    label: "Open to",
+    value: "Remote, hybrid or on-site in Batam, or relocation to any country",
+  },
   { label: "Availability", value: "Available now" },
   { label: "Roles", value: "Senior backend engineer, technical lead" },
-  { label: "Languages", value: "Bahasa Indonesia (native), English (professional working proficiency)" },
+  {
+    label: "Languages",
+    value:
+      "Bahasa Indonesia (native), English (professional working proficiency)",
+  },
 ];
 
 export const stackGroups: StackGroup[] = [
-  { id: "languages", label: "Languages", items: ["Go", "TypeScript", "JavaScript"] },
-  { id: "frameworks", label: "Frameworks", items: ["Fiber", "Express.js", "NestJS"] },
+  {
+    id: "languages",
+    label: "Languages",
+    items: ["Go", "TypeScript", "JavaScript"],
+  },
+  {
+    id: "frameworks",
+    label: "Frameworks",
+    items: ["Fiber", "Express.js", "NestJS"],
+  },
   {
     id: "apis",
     label: "APIs and messaging",
@@ -293,7 +328,11 @@ export const stackGroups: StackGroup[] = [
     items: ["PostgreSQL", "Redis", "Firebase", "Meilisearch", "SQL and NoSQL"],
   },
   { id: "cloud", label: "Cloud", items: ["Google Cloud Platform", "AWS"] },
-  { id: "ai", label: "AI", items: ["Claude Code", "LangChain", "Production AI assistant"] },
+  {
+    id: "ai",
+    label: "AI",
+    items: ["Claude Code", "LangChain", "Production AI assistant"],
+  },
   {
     id: "practice",
     label: "Practice",
