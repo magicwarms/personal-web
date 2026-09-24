@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { ariaLabelFor, captionFor, edges, litFor, nodes } from '@/data/diagram'
 import { reduceActive } from '@/composables/diagramActive'
 import type { ActiveAction } from '@/composables/diagramActive'
+import { useDiagramTrace } from '@/composables/useDiagramTrace'
 
 /**
  * The Kirimfresh.id backend, simplified, as the hero visual. The graph lives
@@ -20,6 +21,8 @@ const DEFAULT_CAPTION =
 const root = ref<HTMLElement | null>(null)
 const paused = ref(false)
 const activeId = ref<string | null>(null)
+const svg = ref<SVGSVGElement | null>(null)
+const trace = useDiagramTrace(svg)
 let observer: IntersectionObserver | undefined
 
 /**
@@ -29,11 +32,21 @@ let observer: IntersectionObserver | undefined
  */
 let lastPointer = ''
 
-const lit = computed(() => (activeId.value ? litFor(activeId.value) : null))
-const caption = computed(() => (activeId.value ? captionFor(activeId.value) : DEFAULT_CAPTION))
+/** The trace owns the lighting while it plays; otherwise the active node does. */
+const lit = computed(() => {
+  if (trace.tracing.value) return trace.lit.value
+  return activeId.value ? litFor(activeId.value) : null
+})
+
+const caption = computed(
+  () => trace.caption.value ?? (activeId.value ? captionFor(activeId.value) : DEFAULT_CAPTION),
+)
 
 function dispatch(action: ActiveAction) {
-  activeId.value = reduceActive(activeId.value, action)
+  const next = reduceActive(activeId.value, action)
+  // Lighting a node is the reader taking over: stop the trace.
+  if (next !== null && trace.tracing.value) trace.cancel()
+  activeId.value = next
 }
 
 const isNodeDim = (id: string) => lit.value !== null && !lit.value.nodes.has(id)
@@ -76,10 +89,11 @@ onBeforeUnmount(() => observer?.disconnect())
   <figure
     ref="root"
     class="diagram"
-    :class="{ 'diagram--paused': paused }"
+    :class="{ 'diagram--paused': paused, 'diagram--tracing': trace.tracing.value }"
     @keydown.esc="dispatch({ type: 'clear' })"
   >
     <svg
+      ref="svg"
       class="diagram__svg"
       viewBox="0 0 340 356"
       role="group"
@@ -115,6 +129,17 @@ onBeforeUnmount(() => observer?.disconnect())
           :d="edge.d"
           pathLength="100"
           :style="{ '--phase': edge.phase }"
+        />
+      </g>
+
+      <g class="diagram__traces" aria-hidden="true">
+        <path
+          v-for="edge in edges"
+          :key="edge.id"
+          class="diagram__trace"
+          :data-trace="edge.id"
+          :d="edge.d"
+          pathLength="100"
         />
       </g>
 
@@ -154,6 +179,10 @@ onBeforeUnmount(() => observer?.disconnect())
         </text>
       </g>
     </svg>
+
+    <button type="button" class="link mono diagram__trace-button" @click="trace.play()">
+      Trace a request
+    </button>
 
     <figcaption class="diagram__caption mono" aria-live="polite">{{ caption }}</figcaption>
   </figure>
@@ -246,6 +275,28 @@ onBeforeUnmount(() => observer?.disconnect())
 
 .diagram__node--active .diagram__box {
   stroke: var(--color-accent);
+}
+
+/* Same dash geometry as the pulses; hidden at offset 8 until the trace
+   timeline moves it. */
+.diagram__trace {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 2;
+  stroke-dasharray: 8 100;
+  stroke-dashoffset: 8;
+}
+
+.diagram--tracing .diagram__pulse {
+  opacity: 0;
+  animation-play-state: paused;
+}
+
+.diagram__trace-button {
+  align-self: flex-start;
+  padding: 0;
+  background: none;
+  border: 0;
 }
 
 .diagram__node {

@@ -146,3 +146,38 @@ export function ariaLabelFor(id: string): string {
   if (!node) return ''
   return `${node.label}, connected to ${joinLabels(neighborLabels(id))}`
 }
+
+/** One request through the system, in order. Edges in one step run together. */
+export const traceSteps: string[][] = [
+  ['customers-api'],
+  ['api-redis', 'api-postgres'],
+  ['api-payments'],
+  ['api-rabbitmq'],
+  ['rabbitmq-fcm'],
+]
+
+/** "API → Redis, PostgreSQL". Names the hop and makes no other claim. */
+export function stepCaption(step: string[]): string {
+  const hops = step.map((id) => edgeById.get(id)).filter((edge): edge is DiagramEdge => edge !== undefined)
+  const first = hops[0]
+  if (!first) return ''
+  const from = nodeById.get(first.from)?.label ?? first.from
+  const to = hops.map((edge) => nodeById.get(edge.to)?.label ?? edge.to).join(', ')
+  return `${from} → ${to}`
+}
+
+/** The whole trace in one line, for reduced motion, where it lights all at once. */
+export function traceSummary(): string {
+  return traceSteps.map(stepCaption).join('; ')
+}
+
+export function nodesOnEdges(edgeIds: string[]): Set<string> {
+  const ids = new Set<string>()
+  for (const id of edgeIds) {
+    const edge = edgeById.get(id)
+    if (!edge) continue
+    ids.add(edge.from)
+    ids.add(edge.to)
+  }
+  return ids
+}
