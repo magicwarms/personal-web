@@ -30,13 +30,13 @@ export type MotionPrep = (root: HTMLElement) => void
  *   the already-hidden current value as its destination and animate 0 to 0.
  *   `prep` is JS, so if the bundle never loads nothing is hidden and the page
  *   degrades to plain static content.
- * - Fonts are awaited before anything is built. Switzer is fetched from
- *   Fontshare at runtime, and SplitText measures line boxes at split time —
- *   splitting against the fallback font produces line breaks and mask heights
- *   that are wrong the moment the real font lands.
+ * - Fonts are awaited before anything is built. The web fonts load from
+ *   Google Fonts at runtime, and ScrollTrigger measures trigger positions
+ *   when it is created; measuring against the fallback font puts every start
+ *   point in the wrong place the moment the real font lands.
  * - `root` is passed to matchMedia as the scope, so selector strings inside
- *   the builder only ever match inside this component. Without it, `.pill`
- *   in one section would happily animate `.pill` in another.
+ *   the builder only ever match inside this component. Without it, `.role`
+ *   in one section would happily animate `.role` in another.
  */
 export function useSectionMotion(
   root: Ref<HTMLElement | null>,
@@ -77,7 +77,7 @@ export function useSectionMotion(
       root.value,
     )
 
-    // Splitting text and revealing elements changes layout; every trigger
+    // Revealing elements and swapping in web fonts changes layout; every trigger
     // created before this point measured the pre-split page.
     ScrollTrigger.refresh()
   })
@@ -85,7 +85,7 @@ export function useSectionMotion(
   onUnmounted(() => {
     disposed = true
     // matchMedia creates a gsap.context() internally, so reverting it kills
-    // every tween, ScrollTrigger and SplitText created inside the builder.
+    // every tween and ScrollTrigger created inside the builder.
     matchMedia?.revert()
     prepContext?.revert()
   })

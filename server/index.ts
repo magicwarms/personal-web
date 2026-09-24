@@ -35,14 +35,14 @@ app.use(
       directives: {
         defaultSrc: ["'self'"],
         // The production build emits no inline script — every bundle is a
-        // separate hashed file — so 'self' needs no nonce or hash alongside it.
+        // separate hashed file, and the pre-paint theme script is the static
+        // /theme-init.js — so 'self' needs no nonce or hash alongside it.
         scriptSrc: ["'self'"],
-        // fonts.googleapis.com serves JetBrains Mono (code display);
-        // api.fontshare.com serves Switzer, the display/body typeface.
-        // 'unsafe-inline' is here for the inline style attributes motion-v
+        // fonts.googleapis.com serves Instrument Sans and IBM Plex Mono.
+        // 'unsafe-inline' is here for the inline style attributes GSAP
         // writes while animating; no stylesheet depends on it.
-        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://api.fontshare.com'],
-        fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://cdn.fontshare.com'],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
         imgSrc: ["'self'", 'data:'],
         // The contact form only ever posts back to this same origin.
         connectSrc: ["'self'"],
@@ -104,9 +104,18 @@ const clientDir = path.join(rootDir, 'dist')
 if (existsSync(clientDir)) {
   app.use(express.static(clientDir, { index: false, maxAge: '1h' }))
 
+  const indexHtml = path.join(clientDir, 'index.html')
+
+  app.get('/', (_req, res) => {
+    res.sendFile(indexHtml)
+  })
+
+  // The site is a single page, so any other path is a real miss. It still
+  // gets the page (a visitor lands somewhere useful), but with a 404 status,
+  // so search engines do not index stray URLs as duplicates of the home page.
   // Express 5 rejects the old '*' string pattern, so match with a RegExp.
   app.get(/.*/, (_req, res) => {
-    res.sendFile(path.join(clientDir, 'index.html'))
+    res.status(404).sendFile(indexHtml)
   })
 }
 

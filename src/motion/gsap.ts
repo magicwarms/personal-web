@@ -2,18 +2,15 @@
  * Single registration point for GSAP and its plugins.
  *
  * Imported for its side effects in `main.ts`, so plugins are registered once
- * for the whole app rather than in every component that animates. Every
- * plugin below ships in the public `gsap` package and is free for commercial
- * use — there is no auth token, private registry, or membership involved.
+ * for the whole app rather than in every component that animates. GSAP only
+ * drives scroll reveals and the earlier-roles accordion now; the hero and
+ * the system diagram animate in CSS.
  */
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { SplitText } from 'gsap/SplitText'
-import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin'
-import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin'
 import { CustomEase } from 'gsap/CustomEase'
 
-gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin, ScrambleTextPlugin, CustomEase)
+gsap.registerPlugin(ScrollTrigger, CustomEase)
 
 /**
  * The same literal curves as `--ease-out` / `--ease-in-out` in base.css.
@@ -23,12 +20,9 @@ gsap.registerPlugin(ScrollTrigger, SplitText, DrawSVGPlugin, ScrambleTextPlugin,
 CustomEase.create('site-out', '0.16,1,0.3,1')
 CustomEase.create('site-in-out', '0.65,0,0.35,1')
 
-gsap.defaults({ duration: 0.6, ease: 'site-out' })
+gsap.defaults({ duration: 0.45, ease: 'site-out' })
 
-/** Where a section's entrance fires: a sliver of it is on screen. */
-export const REVEAL_START = 'top 82%'
+/** Where a block's entrance fires: a sliver of it is on screen. */
+export const REVEAL_START = 'top 90%'
 
-/** Scrub lag, in seconds. Enough to smooth a trackpad without feeling loose. */
-export const SCRUB = 0.6
-
-export { gsap, ScrollTrigger, SplitText, DrawSVGPlugin, ScrambleTextPlugin, CustomEase }
+export { gsap, ScrollTrigger, CustomEase }

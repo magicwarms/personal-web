@@ -1,10 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" fill="#000000"/>
-  <path d="M16 5 L27 26 L5 26 Z" fill="url(#g)"/>
-  <defs>
-    <linearGradient id="g" x1="16" y1="5" x2="16" y2="26" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#8052ff"/>
-      <stop offset="1" stop-color="#15846e"/>
-    </linearGradient>
-  </defs>
+  <rect width="32" height="32" rx="6" fill="#171717"/>
+  <text x="16" y="21" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="14" font-weight="600" letter-spacing="-0.5" fill="#fafafa">AU</text>
 </svg>

@@ -1,8 +1,25 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { navItems } from '@/data/portfolio'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useTheme } from '@/composables/useTheme'
+import { navItems, profile } from '@/data/portfolio'
 
 const menuOpen = ref(false)
+const { theme, toggle: toggleTheme } = useTheme()
+
+/**
+ * The hairline only appears once content is scrolling underneath. Starts
+ * false and is read after mount, so the prerendered markup and the hydrated
+ * markup agree even when the browser restores a scroll position on reload.
+ */
+const scrolled = ref(false)
+
+function onScroll() {
+  scrolled.value = window.scrollY > 8
+}
+
+const themeAction = computed(() =>
+  theme.value === 'dark' ? 'Switch to light theme' : 'Switch to dark theme',
+)
 
 function closeMenu() {
   menuOpen.value = false
@@ -12,36 +29,37 @@ function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') closeMenu()
 }
 
-onMounted(() => window.addEventListener('keydown', onKeydown))
-onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
+onMounted(() => {
+  onScroll()
+  window.addEventListener('scroll', onScroll, { passive: true })
+  window.addEventListener('keydown', onKeydown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onScroll)
+  window.removeEventListener('keydown', onKeydown)
+})
 </script>
 
 <template>
-  <!-- Navigation Bar (DESIGN.md): transparent, sitting directly on the void,
-       no border, no backdrop blur — a flat top bar, not a floating pill. -->
-  <header class="nav">
+  <!-- Sticky with a solid paper background, so content never shows through
+       or collides with the links while scrolling. -->
+  <header class="nav" :class="{ 'nav--scrolled': scrolled || menuOpen }">
     <div class="shell nav__inner">
-      <a class="nav__mark" href="#top" aria-label="Andhana Utama — back to top" @click="closeMenu">
-        <!-- Logo Lockup: small triangular violet mark fading to teal. -->
-        <svg class="nav__mark-icon" viewBox="0 0 24 22" aria-hidden="true">
-          <path d="M12 1 L23 21 L1 21 Z" fill="url(#nav-mark-gradient)" />
-          <defs>
-            <linearGradient id="nav-mark-gradient" x1="12" y1="1" x2="12" y2="21" gradientUnits="userSpaceOnUse">
-              <stop offset="0" stop-color="#8052ff" />
-              <stop offset="1" stop-color="#15846e" />
-            </linearGradient>
-          </defs>
-        </svg>
-        AU
+      <a class="nav__mark" href="#top" @click="closeMenu">
+        {{ profile.name }}<span class="sr-only">, back to top</span>
       </a>
 
-      <ul class="nav__links">
-        <li v-for="item in navItems" :key="item.id">
-          <a :href="`#${item.id}`">{{ item.label }}</a>
-        </li>
-      </ul>
+      <nav class="nav__links" aria-label="Sections">
+        <a v-for="item in navItems" :key="item.id" :href="`#${item.id}`">{{ item.label }}</a>
+      </nav>
 
-      <a class="btn btn--solid nav__cta" href="#contact" @click="closeMenu">Contact</a>
+      <!-- Shows the current theme; the hidden text names the action, and the
+           accessible name still contains the visible word (WCAG 2.5.3). -->
+      <button type="button" class="nav__theme mono" @click="toggleTheme">
+        <span class="nav__theme-swatch" aria-hidden="true"></span>
+        <span class="sr-only">Theme: </span>{{ theme === 'dark' ? 'Dark' : 'Light' }}<span class="sr-only">. {{ themeAction }}</span>
+      </button>
 
       <button
         type="button"
@@ -55,11 +73,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       </button>
     </div>
 
-    <!-- Mobile menu: a floating card would need a border to read against
-         black, so this is a full-screen void overlay instead — no edge
-         required, and it stays true to "the void is the design". -->
     <Transition name="sheet">
-      <div v-if="menuOpen" id="nav-sheet" class="nav-sheet">
+      <nav v-if="menuOpen" id="nav-sheet" class="nav-sheet" aria-label="Sections">
         <a
           v-for="item in navItems"
           :key="item.id"
@@ -69,95 +84,116 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
         >
           {{ item.label }}
         </a>
-        <a class="btn btn--solid nav-sheet__cta" href="#contact" @click="closeMenu">Contact</a>
-      </div>
+        <a class="btn btn--outline nav-sheet__cv" :href="profile.cv" download @click="closeMenu">
+          Download CV (PDF)
+        </a>
+      </nav>
     </Transition>
   </header>
 </template>
 
 <style scoped>
 .nav {
-  position: fixed;
-  inset: 0 0 auto 0;
+  position: sticky;
+  top: 0;
   z-index: 40;
-  background: transparent;
+  background: var(--color-paper);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--dur-short) var(--ease-out);
+}
+
+.nav--scrolled {
+  border-bottom-color: var(--color-rule);
 }
 
 .nav__inner {
   display: flex;
   align-items: center;
-  gap: var(--spacing-24);
-  padding-block: var(--spacing-18);
+  gap: 8px;
+  height: var(--header-h);
 }
 
 .nav__mark {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  margin-right: auto;
+  padding-block: 10px;
   font-family: var(--font-display);
-  font-weight: var(--font-weight-regular);
   font-size: 1.0625rem;
-  letter-spacing: var(--tracking-tight);
-  color: var(--color-bone-white);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
   white-space: nowrap;
-}
-
-.nav__mark:hover {
-  color: var(--color-bone-white);
-}
-
-.nav__mark-icon {
-  width: 20px;
-  height: 19px;
-  flex: none;
 }
 
 .nav__links {
   display: none;
   align-items: center;
-  gap: var(--spacing-30);
-  margin: 0 0 0 auto;
-  padding: 0;
-  list-style: none;
-  font-family: var(--font-display);
-  font-weight: var(--font-weight-semibold);
-  font-size: var(--text-nav-label);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
+  gap: 4px;
+  margin-right: 8px;
 }
 
 .nav__links a {
-  color: var(--color-ash-gray);
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 10px;
+  font-size: var(--text-sm);
+  color: var(--color-ink-2);
   white-space: nowrap;
 }
 
 .nav__links a:hover {
-  color: var(--color-bone-white);
+  color: var(--color-ink);
 }
 
-.nav__cta {
-  display: none;
-  margin-left: var(--spacing-18);
+.nav__theme {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  background: none;
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius);
+  color: var(--color-ink-2);
+  transition:
+    border-color var(--dur-short) var(--ease-out),
+    color var(--dur-short) var(--ease-out);
+}
+
+.nav__theme:hover {
+  border-color: var(--color-rule-strong);
+  color: var(--color-ink);
+}
+
+/* Half-filled disc: the current theme's ink and paper side by side. */
+.nav__theme-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid var(--color-ink);
+  background: linear-gradient(90deg, var(--color-ink) 50%, transparent 50%);
 }
 
 .nav__toggle {
-  margin-left: auto;
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   background: transparent;
   border: none;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius);
 }
 
 .nav__toggle-bars,
 .nav__toggle-bars::before,
 .nav__toggle-bars::after {
-  width: 16px;
+  width: 18px;
   height: 1.5px;
-  background: var(--color-bone-white);
-  transition: transform var(--dur-short) var(--ease-out), opacity var(--dur-short) var(--ease-out);
+  background: var(--color-ink);
+  transition:
+    transform var(--dur-short) var(--ease-out),
+    background-color var(--dur-short) var(--ease-out);
 }
 
 .nav__toggle-bars {
@@ -173,11 +209,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 }
 
 .nav__toggle-bars::before {
-  top: -5px;
+  top: -6px;
 }
 
 .nav__toggle-bars::after {
-  top: 5px;
+  top: 6px;
 }
 
 .nav__toggle-bars--open {
@@ -196,31 +232,29 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
 .nav-sheet {
   position: fixed;
-  inset: 0;
+  inset: var(--header-h) 0 0 0;
   z-index: 39;
-  background: var(--color-void);
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: var(--spacing-24);
-  padding: var(--shell-pad);
+  padding: 8px var(--shell-pad) 32px;
+  background: var(--color-paper);
+  overflow-y: auto;
 }
 
 .nav-sheet__link {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  border-bottom: 1px solid var(--color-rule);
   font-family: var(--font-display);
-  font-weight: var(--font-weight-regular);
-  font-size: var(--text-heading-sm);
-  letter-spacing: var(--tracking-tight);
-  color: var(--color-bone-white);
+  font-size: 1.375rem;
+  font-weight: var(--weight-medium);
+  color: var(--color-ink);
 }
 
-.nav-sheet__link:hover {
-  color: var(--color-saffron-spark);
-}
-
-.nav-sheet__cta {
-  margin-top: var(--spacing-12);
+.nav-sheet__cv {
+  margin-top: 24px;
+  align-self: flex-start;
 }
 
 .sheet-enter-active,
@@ -236,10 +270,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 @media (min-width: 60rem) {
   .nav__links {
     display: flex;
-  }
-
-  .nav__cta {
-    display: inline-flex;
   }
 
   .nav__toggle {

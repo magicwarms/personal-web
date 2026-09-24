@@ -7,6 +7,7 @@
 # --- Build artifacts (regenerated inside the image) ---
 node_modules
 dist
+dist-ssr
 dist-server
 .vite
 *.tsbuildinfo

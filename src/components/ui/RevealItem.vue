@@ -1,20 +1,20 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { gsap } from '@/motion/gsap'
+import { REVEAL_START, gsap } from '@/motion/gsap'
 import { useSectionMotion } from '@/composables/useSectionMotion'
 
 /**
- * The baseline scroll reveal — a settle, not a performance. Sections with
- * their own choreography (headings, work, experience, stack, credentials)
- * build it directly; this is for everything that just needs to arrive
- * without ceremony.
+ * The one scroll reveal on the page: a short settle as a block comes into
+ * view, so the eye lands on new content. Nothing else moves on scroll.
  */
 const props = withDefaults(
   defineProps<{
-    /** Seconds to hold back, for hand-tuned cascades. */
+    /** Seconds to hold back, for small cascades inside one section. */
     delay?: number
+    /** Rendered element, so a reveal can be a list item or an article. */
+    as?: string
   }>(),
-  { delay: 0 },
+  { delay: 0, as: 'div' },
 )
 
 const root = ref<HTMLElement | null>(null)
@@ -33,17 +33,22 @@ useSectionMotion(
     gsap.to(el, {
       autoAlpha: 1,
       y: 0,
-      duration: 0.6,
       delay: props.delay,
-      scrollTrigger: { trigger: el, start: 'top 88%', once: true },
+      scrollTrigger: { trigger: el, start: REVEAL_START, once: true },
     })
   },
-  (el) => gsap.set(el, { autoAlpha: 0, y: 10 }),
+  // The page is prerendered, so a block already on screen at mount has been
+  // painted; hiding it now would make it blink. Only blocks still below the
+  // fold get the entrance.
+  (el) => {
+    if (el.getBoundingClientRect().top < window.innerHeight) return
+    gsap.set(el, { autoAlpha: 0, y: 8 })
+  },
 )
 </script>
 
 <template>
-  <div ref="root">
+  <component :is="as" ref="root">
     <slot />
-  </div>
+  </component>
 </template>
