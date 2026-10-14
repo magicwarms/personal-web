@@ -191,6 +191,24 @@ export const projects: Project[] = [
     ],
     stack: ["Go", "Fiber", "PostgreSQL", "Redis", "RabbitMQ", "Meilisearch"],
     featured: true,
+    caseStudy: {
+      description:
+        "How I built the Go backend behind Kirimfresh.id: orders, payments, driver dispatch, and bank payouts for customers, suppliers, drivers, and a POS.",
+      context: [
+        "Kirimfresh.id delivers fresh food such as vegetables, fish, and fruit. Customers order from supplier stores, and motorcycle drivers collect each order and bring it to the customer.",
+        "One Go API serves everyone involved: customers, suppliers, and drivers in separate mobile apps, staff in a back office dashboard, and FreshPOS, the point-of-sale terminal. The documented API has more than 200 endpoints across those surfaces.",
+        "Every order moves money in several directions. A customer pays through DOKU or in cash on delivery, the supplier's balance goes up, and the driver earns a delivery fee. Later, suppliers and drivers withdraw their balances to a bank account. The backend has to keep all of those balances correct while orders, payments, and withdrawals arrive at the same time.",
+      ],
+      approach: [
+        "It is one Go service built on Fiber. Each domain, such as orders, products, balances, and points, has its own handler, service, and repository, and dependency injection wires them together. The mobile apps, the dashboard, and FreshPOS all call the same services, and a role check in middleware decides which routes each kind of user can reach.",
+        "Confirming a payment changes several things at once, so it runs as one database transaction. DOKU can send the same webhook more than once, so the handler locks the order row and ignores a status it has already applied. Inside the transaction it updates the order, takes the stock off, records any promo use, credits the supplier's balance, starts driver matching, and stores the payment. If any step fails, all of them roll back.",
+        "RabbitMQ takes the work that should not slow down a request. Drivers send their position over a WebSocket, each update goes onto a queue, and a consumer writes the location history and the driver's current position. Order events go onto a second queue and are stored as an audit trail. Both consumers acknowledge a message only after it is saved.",
+        "Dispatch is a geographic query. Driver positions live in PostgreSQL with a PostGIS index, and a new order notifies every online, verified driver within 25 km of the pickup point. Several drivers get the same offer, so accepting it locks the order row: the first driver to accept gets the order, and later answers are refused. A driver can also hold only a configured number of active orders. For cash-on-delivery orders, only drivers whose balance covers the order total are offered the job, once any pending withdrawal is subtracted.",
+        "Withdrawals reach a bank through DOKU's payout API. A user confirms with a one-time code sent by email, the service checks the destination with an inquiry call, and only then marks the withdrawal On Progress and deducts the balance, both in one transaction. A failed payout gives the balance back. Some payouts stay pending without a callback, so a cron job polls DOKU every five minutes by default and settles them. A payout that cannot be sent automatically, such as one to an unsupported bank, goes to Hold For Review for a person to handle.",
+        "Product search runs on Meilisearch, with category and rating filters. Redis caches data that is read often, such as delivery fees, and holds the one-time codes for withdrawals. Cron jobs expire loyalty points after a configurable number of days and remind suppliers whose store is open to keep its open or closed status current. Push notifications go out through Firebase FCM, with a different sound for customers, suppliers, and drivers.",
+        "I document the API from annotations on the handlers. The OpenAPI spec is generated from them and served as a Scalar reference at /docs. CI regenerates it on every pull request and fails if the committed copy is out of date, so the reference cannot drift from the code. It is off in production unless someone switches it on, because it also describes the back office routes. In production, Sentry collects errors, every request gets an ID, and request logs hide passwords.",
+      ],
+    },
   },
   {
     id: "thegamechangers",
@@ -206,6 +224,22 @@ export const projects: Project[] = [
       "English and Indonesian versions with a language switcher",
       "An animated dot background drawn on a canvas, with a still version for visitors who set their device to reduce motion",
     ],
+    caseStudy: {
+      description:
+        "How I designed and built the bilingual Next.js site for The Game Changers, an experiential learning company in Batam, with reduced-motion fallbacks.",
+      context: [
+        "The Game Changers runs Amazing Race, team building, and cultural programs in Batam and beyond. The site explains those programs to companies, schools, and groups, in English and in Indonesian.",
+        "I worked alone, from the layout and the motion to the build and the deployment. The portfolio page shows eight photos from real events and says that full project stories will follow once details are confirmed. I kept the page to what The Game Changers had confirmed instead of writing stories for it.",
+      ],
+      approach: [
+        "The site is Next.js 15 with the App Router and plain JavaScript. Every page is generated at build time and served by a standalone Node server in a Docker image. The image builds from a pinned base image, runs as a non-root user, and has a health check, and Dokploy deploys it.",
+        "English lives under /en and Indonesian under /id. Every page declares its canonical URL and its alternate-language twin, and both languages are in the sitemap, so search engines can match the two versions. All copy sits in two JSON files that components read through one async accessor. That keeps text out of the components and would let a CMS replace the files later without touching them.",
+        "Every photo goes through a registry. A photo key that does not exist, or one without alt text, fails the build rather than reaching a visitor as a broken or unlabeled image. The registry points to compressed copies, none larger than 200 KB, and the full-size originals stay out of the repository. Tests check that every registered photo has alt text and a caption in both languages.",
+        "Motion is limited, and each effect has a fallback. GSAP ScrollSmoother adds layered parallax to the portfolio photo on the home page, and the background is a particle effect from the ThreeUI library, recolored to the site's orange. For visitors who have reduced motion turned on, smooth scrolling is never created, the hero video is replaced by its poster image and never downloaded, and the background becomes a plain fill. The hero video is muted and loops, and a labeled placeholder takes its place if the file fails to load.",
+        "Node tests cover the enquiry validation, the photo registry, and the About page content. Playwright tests load both languages at several widths and check for horizontal overflow, the hero video, the parallax layers, and the reduced-motion behavior.",
+      ],
+      url: "https://thegamechangers.id",
+    },
   },
   {
     id: "treedots",
