@@ -4,24 +4,24 @@ import AppFooter from './components/AppFooter.vue'
 import SignalField from './components/ui/SignalField.vue'
 import { ref } from 'vue'
 import { useRuleDraw } from './composables/useRuleDraw'
-import HeroSection from './components/HeroSection.vue'
-import WorkSection from './components/WorkSection.vue'
-import ExperienceSection from './components/ExperienceSection.vue'
-import AboutSection from './components/AboutSection.vue'
-import StackSection from './components/StackSection.vue'
-import CredentialsSection from './components/CredentialsSection.vue'
-import ContactSection from './components/ContactSection.vue'
+import HomePage from './pages/HomePage.vue'
+import CaseStudyPage from './pages/CaseStudyPage.vue'
+import { resolvePage } from './seo/pages'
+
+const props = defineProps<{ path: string }>()
+
+// One prerendered HTML file per page, all from this bundle. Moving between
+// pages is a normal page load, so GSAP, ScrollTrigger and the section
+// observer only ever see one mount.
+const page = resolvePage(props.path)
 
 const main = ref<HTMLElement | null>(null)
 useRuleDraw(main)
 </script>
 
 <template>
-  <!-- Reading order follows what a recruiter checks: who and whether
-       available, proof of work, role history, logistics, keywords,
-       credentials, then how to reach him. Reduced motion is honoured by
-       `useSectionMotion` for scroll reveals and by base.css for the CSS
-       animations. -->
+  <!-- Reduced motion is honoured by `useSectionMotion` for scroll reveals and
+       by base.css for the CSS animations. -->
   <SignalField />
   <a class="skip-link" href="#main">Skip to content</a>
 
@@ -29,13 +29,8 @@ useRuleDraw(main)
     <AppHeader />
 
     <main id="main" ref="main" class="shell">
-      <HeroSection />
-      <WorkSection />
-      <ExperienceSection />
-      <AboutSection />
-      <StackSection />
-      <CredentialsSection />
-      <ContactSection />
+      <HomePage v-if="page.kind === 'home'" />
+      <CaseStudyPage v-else :project="page.project" />
     </main>
 
     <AppFooter />

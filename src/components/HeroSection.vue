@@ -38,7 +38,9 @@ useSectionMotion(root, ({ isDesktop, reduceMotion }) => {
           </span>
         </p>
 
-        <h1 id="hero-title" class="hero__title rise" :style="{ '--i': 1 }">{{ profile.headline }}</h1>
+        <h1 id="hero-title" class="hero__title rise" :style="{ '--i': 1 }">
+          <span class="hero__eyebrow mono">{{ profile.name }}, {{ profile.title }}</span>{{ ' ' }}<span class="hero__headline">{{ profile.headline }}</span>
+        </h1>
 
         <p class="hero__intro rise" :style="{ '--i': 2 }">{{ profile.intro }}</p>
 
@@ -106,10 +108,25 @@ useSectionMotion(root, ({ isDesktop, reduceMotion }) => {
 
 .hero__title {
   margin-top: 20px;
-  max-width: 14ch;
   font-size: var(--text-display);
   letter-spacing: var(--tracking-display);
   line-height: 1.02;
+}
+
+/* The name and role sit inside the h1, so the page's one heading says who
+   this is and what he does. */
+.hero__eyebrow {
+  display: block;
+  margin-bottom: 16px;
+  font-weight: var(--weight-regular);
+  line-height: 1.5;
+  color: var(--color-ink-3);
+  text-wrap: wrap;
+}
+
+.hero__headline {
+  display: block;
+  max-width: 14ch;
   text-wrap: balance;
 }
 
