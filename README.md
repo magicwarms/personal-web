@@ -77,9 +77,9 @@ SMTP round trip, so a briefly unreachable mail provider cannot cause restarts.
 Dockerfile          multi-stage build; runtime image carries no secrets
 docker-compose.yml  runs the production image locally against the real .env
 DEPLOY.md           Dokploy deployment, secrets handling, troubleshooting
-public/             favicon, robots.txt, sitemap.xml, theme-init.js (pre-paint theme)
-public/assets/      portrait + CV PDF served as-is
-scripts/prerender.mjs  writes the server-rendered page into dist/index.html
+public/             favicon, robots.txt, theme-init.js (pre-paint theme)
+public/assets/      portrait, its 224px WebP thumbnail, and the CV PDF, served as-is
+scripts/prerender.mjs  writes one server-rendered HTML file per page, plus sitemap.xml and llms.txt
 server/             contact API — never imported by src/
   index.ts          app wiring, helmet/CSP, rate limit, static SPA, /api/health
   env.ts            required env vars, validated at boot
@@ -91,6 +91,8 @@ src/
   motion/gsap.ts    GSAP plugin registration and shared easing
   composables/      useSectionMotion (reveal lifecycle), useTheme (light/dark)
   components/       one component per section, plus ui/ primitives
+  pages/            HomePage and CaseStudyPage, chosen by App from the request path
+  seo/              page list, head tags, JSON-LD, sitemap, and llms.txt builders (tested)
   entry-server.ts   build-time render entry used by the prerender step
   styles/base.css   design tokens, resets, shared primitives
 ```
@@ -101,13 +103,22 @@ project, or a skill means editing data, not markup.
 
 ## SEO
 
-- The page is prerendered, so crawlers and link-preview bots that do not run
-  JavaScript still get the full content.
-- `index.html` carries the title, description, canonical URL, Open Graph and
-  Twitter tags, and a JSON-LD `ProfilePage`/`Person` block. Keep it in sync with
-  `src/data/portfolio.ts` when the copy changes.
-- `robots.txt` and `sitemap.xml` are in `public/`. Paths other than `/` return
-  404 with the page, so stray URLs are not indexed as duplicates.
+- Every page is prerendered to its own HTML file, so crawlers and link-preview
+  bots that do not run JavaScript still get the full content. `App.vue` picks
+  the page from the path; moving between pages is a normal page load.
+- The title, description, canonical URL, Open Graph and Twitter tags, and the
+  JSON-LD for each page are generated from `src/data/portfolio.ts` by
+  `src/seo/` and swapped into the `<!--page-head-->` marker in `index.html`.
+  `dist/sitemap.xml` and `dist/llms.txt` are generated the same way. Bump
+  `site.updated` in `portfolio.ts` when the content changes; it is the
+  sitemap `lastmod` and the JSON-LD `dateModified`.
+- A project gets its own page at `/work/<id>` when it has a `caseStudy` in
+  `portfolio.ts`. Without one, the site builds exactly as before.
+- `robots.txt` is in `public/`. `/index.html` and trailing-slash URLs 301 to
+  the clean path, and any other unknown path returns 404 with the home page, so
+  stray URLs are not indexed as duplicates.
+- Fonts are self-hosted through Fontsource and the hashed bundles in
+  `dist/_app/` are served with a one-year immutable cache.
 
 ## Animation notes
 
