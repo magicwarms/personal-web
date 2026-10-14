@@ -15,6 +15,17 @@ export interface ProofPoint {
   source: string;
 }
 
+export interface CaseStudy {
+  /** Meta description for the page, at most 155 characters. */
+  description: string;
+  /** The situation before the work started, one string per paragraph. */
+  context: string[];
+  /** Decisions made and why, one string per paragraph. */
+  approach: string[];
+  /** Live product URL, when there is one. */
+  url?: string;
+}
+
 export interface Project {
   id: string;
   index: string;
@@ -28,6 +39,8 @@ export interface Project {
   stack?: string[];
   /** Rendered as the lead case study. */
   featured?: boolean;
+  /** Only projects with this get their own page at /work/<id>. */
+  caseStudy?: CaseStudy;
 }
 
 export interface EarlierProject {
@@ -86,6 +99,8 @@ export const profile = {
   linkedin: "https://linkedin.com/in/andhana-utama-4a2b1a130",
   cv: "/assets/CV-Andhana-Utama-2026.pdf",
   photo: "/assets/andhana.jpg",
+  /** 224px WebP of the portrait, for the 112px About photo. */
+  photoThumb: "/assets/andhana-224.webp",
   availability: "Available now",
   workModes: "Remote, Batam (GMT+7), or relocation anywhere in the world",
   headline: "I build backend systems that scale and stay up.",
@@ -96,6 +111,45 @@ export const profile = {
     "I work AI-native. I use Claude Code across the development cycle and review its output critically instead of trusting it. I have shipped a customer-facing AI assistant to production and built a LangChain deep agent with tool-calling subagents.",
   ],
 } as const;
+
+/**
+ * Search and share metadata. prerender.mjs builds every page head, the
+ * sitemap, and llms.txt from this and from `profile`, so nothing is
+ * hand-copied into index.html. Bump `updated` when the content changes.
+ */
+export const site = {
+  url: "https://andhanautama.id",
+  /** ISO date, used as lastmod and dateModified. */
+  updated: "2026-10-14",
+  title: "Andhana Utama | Senior Backend Engineer and Technical Lead",
+  description:
+    "Senior backend engineer and technical lead. 11+ years building Go and Node.js systems for teams in Indonesia, Singapore, and Malaysia. Available now.",
+  socialDescription:
+    "I build backend systems that scale and stay up. Go, Node.js, PostgreSQL, Redis, RabbitMQ. Available now.",
+  personDescription:
+    "Senior backend engineer and technical lead with 11+ years building Go and Node.js systems for teams in Indonesia, Singapore, and Malaysia.",
+  address: {
+    locality: "Batam",
+    region: "Riau Islands",
+    country: "ID",
+  },
+  knowsLanguage: ["id", "en"],
+  knowsAbout: [
+    "Go",
+    "Node.js",
+    "TypeScript",
+    "PostgreSQL",
+    "Redis",
+    "RabbitMQ",
+    "Meilisearch",
+    "REST APIs",
+    "GraphQL",
+    "Event-driven architecture",
+    "Distributed systems",
+    "Google Cloud Platform",
+    "AWS",
+  ],
+};
 
 export const proof: ProofPoint[] = [
   {
