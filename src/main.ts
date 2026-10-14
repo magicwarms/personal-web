@@ -1,5 +1,10 @@
 import { createApp, createSSRApp } from 'vue'
 import App from './App.vue'
+// Self-hosted fonts. Fontsource splits each family by unicode range, so the
+// browser only fetches the latin file for this page's text.
+import '@fontsource-variable/instrument-sans'
+import '@fontsource/ibm-plex-mono/400.css'
+import '@fontsource/ibm-plex-mono/500.css'
 import './styles/base.css'
 // Side effect: registers every GSAP plugin and the shared `site-out` ease.
 import './motion/gsap'
