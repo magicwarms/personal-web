@@ -30,10 +30,10 @@ export type MotionPrep = (root: HTMLElement) => void
  *   the already-hidden current value as its destination and animate 0 to 0.
  *   `prep` is JS, so if the bundle never loads nothing is hidden and the page
  *   degrades to plain static content.
- * - Fonts are awaited before anything is built. The web fonts load from
- *   Google Fonts at runtime, and ScrollTrigger measures trigger positions
- *   when it is created; measuring against the fallback font puts every start
- *   point in the wrong place the moment the real font lands.
+ * - Fonts are awaited before anything is built. The web fonts are self-hosted
+ *   but still load after first paint, and ScrollTrigger measures trigger
+ *   positions when it is created; measuring against the fallback font puts
+ *   every start point in the wrong place the moment the real font lands.
  * - `root` is passed to matchMedia as the scope, so selector strings inside
  *   the builder only ever match inside this component. Without it, `.role`
  *   in one section would happily animate `.role` in another.

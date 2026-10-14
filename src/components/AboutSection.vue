@@ -12,7 +12,7 @@ import { profile, workDetails } from '@/data/portfolio'
       <RevealItem class="about__intro">
         <img
           class="about__photo"
-          :src="profile.photo"
+          :src="profile.photoThumb"
           :alt="`Portrait of ${profile.name}`"
           width="112"
           height="112"

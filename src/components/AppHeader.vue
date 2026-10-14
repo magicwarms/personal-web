@@ -86,7 +86,7 @@ onBeforeUnmount(() => {
        or collides with the links while scrolling. -->
   <header class="nav" :class="{ 'nav--scrolled': scrolled || menuOpen }">
     <div class="shell nav__inner">
-      <a class="nav__mark" href="#top" @click="closeMenu">
+      <a class="nav__mark" href="/#top" @click="closeMenu">
         {{ profile.name }}<span class="sr-only">, back to top</span>
       </a>
 
@@ -94,7 +94,7 @@ onBeforeUnmount(() => {
         <a
           v-for="item in navItems"
           :key="item.id"
-          :href="`#${item.id}`"
+          :href="`/#${item.id}`"
           :data-nav="item.id"
           :aria-current="activeId === item.id ? 'location' : undefined"
         >
@@ -135,7 +135,7 @@ onBeforeUnmount(() => {
         <a
           v-for="item in navItems"
           :key="item.id"
-          :href="`#${item.id}`"
+          :href="`/#${item.id}`"
           class="nav-sheet__link"
           :aria-current="activeId === item.id ? 'location' : undefined"
           @click="closeMenu"

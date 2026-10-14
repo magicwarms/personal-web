@@ -65,6 +65,8 @@ Labels are sentence case. No uppercase with wide tracking.
 - **Text link**: ink with a quiet underline that turns green on hover; tap area extended to about 42px.
 - **Theme toggle**: mono text button showing the current theme with a half-filled disc.
 - **Featured case study**: the most recent project sits on a surface panel; older ones are denser rows. Long lists split into two columns on wide screens.
+- **Hero eyebrow**: a small mono line with the name and role sits inside the `h1`, above the headline, so the page's one heading carries both.
+- **Case-study page** (`/work/<id>`, only for projects with a `caseStudy`): breadcrumb, mono meta line, `h1`, lead, then the usual numbered sections (Context, Approach, What I did, Results, Stack, More work) and a closing contact block. Empty sections are skipped and the rest renumber.
 
 ## Motion
 

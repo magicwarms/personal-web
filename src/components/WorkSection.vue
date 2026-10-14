@@ -28,6 +28,9 @@ import { earlierProjects, projects } from '@/data/portfolio'
 
         <h3 :id="`${project.id}-title`" class="case__title">{{ project.title }}</h3>
         <p class="case__summary">{{ project.summary }}</p>
+        <p v-if="project.caseStudy" class="case__more">
+          <a class="link" :href="`/work/${project.id}`">Read the case study for {{ project.org }}</a>
+        </p>
 
         <div class="case__lists">
           <div v-if="project.did?.length">
@@ -119,6 +122,11 @@ import { earlierProjects, projects } from '@/data/portfolio'
 .case__summary {
   margin-top: 8px;
   max-width: 60ch;
+}
+
+.case__more {
+  margin-top: 12px;
+  font-size: var(--text-sm);
 }
 
 .case__lists {

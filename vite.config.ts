@@ -11,6 +11,9 @@ export default defineConfig({
   },
   build: {
     target: 'es2022',
+    // Hashed bundles and fonts go here, apart from the unhashed files copied
+    // from public/assets, so the server can cache the folder for a year.
+    assetsDir: '_app',
   },
   server: {
     // Forwards the contact endpoint to the API process during development, so

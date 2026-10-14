@@ -38,11 +38,11 @@ app.use(
         // separate hashed file, and the pre-paint theme script is the static
         // /theme-init.js — so 'self' needs no nonce or hash alongside it.
         scriptSrc: ["'self'"],
-        // fonts.googleapis.com serves Instrument Sans and IBM Plex Mono.
         // 'unsafe-inline' is here for the inline style attributes GSAP
-        // writes while animating; no stylesheet depends on it.
-        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        // writes while animating; no stylesheet depends on it. The fonts are
+        // self-hosted, so no third-party origin is needed.
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        fontSrc: ["'self'"],
         imgSrc: ["'self'", 'data:'],
         // The contact form only ever posts back to this same origin.
         connectSrc: ["'self'"],
@@ -102,7 +102,42 @@ const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const clientDir = path.join(rootDir, 'dist')
 
 if (existsSync(clientDir)) {
-  app.use(express.static(clientDir, { index: false, maxAge: '1h' }))
+  // Each page is reachable at one URL. `/index.html` and a trailing slash
+  // serve the same HTML as the clean path, so they 301 to it instead of
+  // becoming duplicates. Both patterns need a letter, digit, or hyphen right
+  // after each slash, so a path like `//evil.com/` never matches and the
+  // redirect target can never leave this origin.
+  const indexFile = /^(\/(?:[a-z0-9-]+\/)*)index\.html$/
+  const trailingSlash = /^(\/[a-z0-9-]+(?:\/[a-z0-9-]+)*)\/$/
+
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' && req.method !== 'HEAD') return next()
+    const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : ''
+    const fromIndex = indexFile.exec(req.path)
+    if (fromIndex) {
+      const folder = fromIndex[1] === '/' ? '/' : fromIndex[1].slice(0, -1)
+      return res.redirect(301, folder + query)
+    }
+    const fromSlash = trailingSlash.exec(req.path)
+    if (fromSlash) return res.redirect(301, fromSlash[1] + query)
+    next()
+  })
+
+  // Hashed bundles and fonts: the file name changes whenever the content does,
+  // so a year-long immutable cache is safe.
+  app.use(
+    '/_app',
+    express.static(path.join(clientDir, '_app'), {
+      immutable: true,
+      maxAge: '1y',
+      index: false,
+      redirect: false,
+    }),
+  )
+
+  // `redirect: false`: without it, a request for the folder `/work/<id>` gets
+  // a 301 to `/work/<id>/` before the route below can answer it.
+  app.use(express.static(clientDir, { index: false, redirect: false, maxAge: '1h' }))
 
   const indexHtml = path.join(clientDir, 'index.html')
 
@@ -110,10 +145,19 @@ if (existsSync(clientDir)) {
     res.sendFile(indexHtml)
   })
 
-  // The site is a single page, so any other path is a real miss. It still
-  // gets the page (a visitor lands somewhere useful), but with a 404 status,
-  // so search engines do not index stray URLs as duplicates of the home page.
-  // Express 5 rejects the old '*' string pattern, so match with a RegExp.
+  // One prerendered file per case study (scripts/prerender.mjs). The slug is
+  // checked against a strict pattern before it touches the file system.
+  app.get('/work/:slug', (req, res, next) => {
+    const slug = req.params.slug
+    const file = path.join(clientDir, 'work', slug, 'index.html')
+    if (!/^[a-z0-9-]+$/.test(slug) || !existsSync(file)) return next()
+    res.sendFile(file)
+  })
+
+  // Any other path is a real miss. It still gets the home page (a visitor
+  // lands somewhere useful), but with a 404 status, so search engines do not
+  // index stray URLs as duplicates of the home page. Express 5 rejects the
+  // old '*' string pattern, so match with a RegExp.
   app.get(/.*/, (_req, res) => {
     res.status(404).sendFile(indexHtml)
   })
