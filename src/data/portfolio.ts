@@ -198,6 +198,7 @@ export const projects: Project[] = [
         "Kirimfresh.id delivers fresh food such as vegetables, fish, and fruit. Customers order from supplier stores, and motorcycle drivers collect each order and bring it to the customer.",
         "One Go API serves everyone involved: customers, suppliers, and drivers in separate mobile apps, staff in a back office dashboard, and FreshPOS, the point-of-sale terminal. The documented API has more than 200 endpoints across those surfaces.",
         "Every order moves money in several directions. A customer pays through DOKU or in cash on delivery, the supplier's balance goes up, and the driver earns a delivery fee. Later, suppliers and drivers withdraw their balances to a bank account. The backend has to keep all of those balances correct while orders, payments, and withdrawals arrive at the same time.",
+        "The customer app also has an AI assistant, which I put into production. It answers general questions, looks up products from the Kirimfresh catalog, and answers questions about recipes and the nutrition of food.",
       ],
       approach: [
         "It is one Go service built on Fiber. Each domain, such as orders, products, balances, and points, has its own handler, service, and repository, and dependency injection wires them together. The mobile apps, the dashboard, and FreshPOS all call the same services, and a role check in middleware decides which routes each kind of user can reach.",
